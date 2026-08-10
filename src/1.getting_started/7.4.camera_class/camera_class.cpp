@@ -21,14 +21,35 @@ void processInput(GLFWwindow *window);
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-// camera
+/**
+ * 相机 — 封装成 Camera 类
+ *
+ * 新增内容：
+ *   camera.h 的 Camera 类 — 把 7.2/7.3 散落的全局变量和手写函数收进一个对象
+ *
+ * 和 7.3 的区别：7.3 用一堆全局变量（cameraPos/yaw/pitch/fov...）+ 手写欧拉角换算。
+ * 这里全部交给 Camera 类：
+ *   camera.ProcessKeyboard(FORWARD, dt)   — 移动（内部用 deltaTime）
+ *   camera.ProcessMouseMovement(xoff,yoff) — 视角（内部改 yaw/pitch 并重算 Front）
+ *   camera.ProcessMouseScroll(yoffset)     — 缩放（内部改 Zoom/fov）
+ *   camera.GetViewMatrix()                 — 直接拿 view 矩阵
+ *   camera.Zoom                            — 直接拿当前 fov
+ *
+ * 好处：main 干净，相机逻辑可复用（后面 lighting / model_loading 直接 include camera.h）。
+ * 注意：鼠标的 firstMouse / offset 计算还留在 cpp（和窗口系统耦合），只有纯数学进了类。
+ */
+
+// ---- 一个 Camera 对象搞定所有相机状态 ----
+// 构造参数 = 初始位置 (0,0,3)。内部默认 yaw=-90°、pitch=0°、up=(0,1,0)、zoom=45°。
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+
+// 鼠标状态（和窗口系统相关，留在 cpp）
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
 
-// timing
-float deltaTime = 0.0f;	// time between current frame and last frame
+// timing（同 7.2）
+float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
 int main()
@@ -238,11 +259,12 @@ int main()
         // activate shader
         ourShader.use();
 
-        // pass projection matrix to shader (note that in this case it could change every frame)
+        // projection 用 camera.Zoom（滚轮会改它）。比 7.3 的全局 fov 更内聚。
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         ourShader.setMat4("projection", projection);
 
-        // camera/view transformation
+        // view 直接问 Camera 要——内部是 lookAt(Position, Position+Front, Up)。
+        // 不用再手写 lookAt 和维护 cameraPos/Front/Up 三个全局变量了。
         glm::mat4 view = camera.GetViewMatrix();
         ourShader.setMat4("view", view);
 
@@ -284,6 +306,8 @@ void processInput(GLFWwindow *window)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
+    // 一行搞定移动：把方向枚举 + deltaTime 交给 Camera，内部自动算位移。
+    // 对比 7.2 要手写 cameraPos += Front * speed 等四行。
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.ProcessKeyboard(FORWARD, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -304,14 +328,13 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 }
 
 
-// glfw: whenever the mouse moves, this callback is called
-// -------------------------------------------------------
+// 鼠标移动回调。offset 计算留在 cpp（依赖 GLFW 的坐标），换算交给 Camera。
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
     float xpos = static_cast<float>(xposIn);
     float ypos = static_cast<float>(yposIn);
 
-    if (firstMouse)
+    if (firstMouse)           // 首帧初始化（同 7.3，避免开局跳变）
     {
         lastX = xpos;
         lastY = ypos;
@@ -319,16 +342,16 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
     }
 
     float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-
+    float yoffset = lastY - ypos;  // Y 反转（屏幕 Y 向下，世界 Y 向上）
     lastX = xpos;
     lastY = ypos;
 
+    // 把 offset 交给 Camera：内部乘灵敏度、累加到 yaw/pitch、重算 Front。
+    // 对比 7.3 要手写一堆 yaw/pitch 累加和三角换算。
     camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
-// glfw: whenever the mouse scroll wheel scrolls, this callback is called
-// ----------------------------------------------------------------------
+// 滚轮回调。直接转发给 Camera，内部改 Zoom 并 clamp 到 [1°,45°]。
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     camera.ProcessMouseScroll(static_cast<float>(yoffset));

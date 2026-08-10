@@ -1,3 +1,19 @@
+/**
+ * 坐标系统（Coordinate Systems）— 3D 渲染的核心：MVP 矩阵
+ *
+ * 新增内容：
+ *   三个矩阵 model / view / projection — 顶点从 3D 空间变换到 2D 屏幕的完整流程
+ *   glm::perspective  — 透视投影矩阵（近大远小）
+ *   glm::radians      — 角度转弧度（GLM 的旋转函数都用弧度）
+ *   shader_m.h        — Shader 增强版，多了 setMat4 等 uniform setter
+ *
+ * 效果：一个略微后仰的矩形（绕 X 轴转 -55°），带透视投影，看起来像俯视地面。
+ * 按 ESC 键可以关闭窗口。
+ *
+ * 从本课起，所有 3D 物体都遵循 MVP 模式：
+ *   局部坐标 →[model]→ 世界坐标 →[view]→ 观察坐标 →[projection]→ 裁剪坐标 → 屏幕
+ */
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
@@ -7,6 +23,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <learnopengl/filesystem.h>
+// shader_m.h — m = matrix，比 shader_s.h 多了 setMat4 / setVec3 等（处理矩阵/向量 uniform）。
 #include <learnopengl/shader_m.h>
 
 #include <iostream>
@@ -14,14 +31,11 @@
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 
-// settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 int main()
 {
-    // glfw: initialize and configure
-    // ------------------------------
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -31,8 +45,6 @@ int main()
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    // glfw window creation
-    // --------------------
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
     if (window == NULL)
     {
@@ -43,30 +55,25 @@ int main()
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    // glad: load all OpenGL function pointers
-    // ---------------------------------------
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
 
-    // build and compile our shader zprogram
-    // ------------------------------------
     Shader ourShader("6.1.coordinate_systems.vs", "6.1.coordinate_systems.fs");
 
-    // set up vertex data (and buffer(s)) and configure vertex attributes
-    // ------------------------------------------------------------------
+    // ---- 顶点数据：单个矩形（位置 + 纹理坐标）----
     float vertices[] = {
         // positions          // texture coords
-         0.5f,  0.5f, 0.0f,   1.0f, 1.0f, // top right
-         0.5f, -0.5f, 0.0f,   1.0f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, // bottom left
-        -0.5f,  0.5f, 0.0f,   0.0f, 1.0f  // top left 
+         0.5f,  0.5f, 0.0f,   1.0f, 1.0f,
+         0.5f, -0.5f, 0.0f,   1.0f, 0.0f,
+        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f,
+        -0.5f,  0.5f, 0.0f,   0.0f, 1.0f
     };
     unsigned int indices[] = {
-        0, 1, 3, // first triangle
-        1, 2, 3  // second triangle
+        0, 1, 3,
+        1, 2, 3
     };
     unsigned int VBO, VAO, EBO;
     glGenVertexArrays(1, &VAO);
@@ -74,37 +81,27 @@ int main()
     glGenBuffers(1, &EBO);
 
     glBindVertexArray(VAO);
-
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-    // position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    // texture coord attribute
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
 
-    // load and create a texture 
-    // -------------------------
+    // ---- 加载两张纹理（同 5.1）----
     unsigned int texture1, texture2;
-    // texture 1
-    // ---------
     glGenTextures(1, &texture1);
     glBindTexture(GL_TEXTURE_2D, texture1);
-    // set the texture wrapping parameters
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // set texture filtering parameters
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // load image, create texture and generate mipmaps
+    stbi_set_flip_vertically_on_load(true);
     int width, height, nrChannels;
-    stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
     unsigned char *data = stbi_load(FileSystem::getPath("resources/textures/container.jpg").c_str(), &width, &height, &nrChannels, 0);
     if (data)
     {
@@ -116,21 +113,16 @@ int main()
         std::cout << "Failed to load texture" << std::endl;
     }
     stbi_image_free(data);
-    // texture 2
-    // ---------
+
     glGenTextures(1, &texture2);
     glBindTexture(GL_TEXTURE_2D, texture2);
-    // set the texture wrapping parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // set texture filtering parameters
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // load image, create texture and generate mipmaps
     data = stbi_load(FileSystem::getPath("resources/textures/awesomeface.png").c_str(), &width, &height, &nrChannels, 0);
     if (data)
     {
-        // note that the awesomeface.png has transparency and thus an alpha channel, so make sure to tell OpenGL the data type is of GL_RGBA
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     }
@@ -140,86 +132,83 @@ int main()
     }
     stbi_image_free(data);
 
-    // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
-    // -------------------------------------------------------------------------------------------
     ourShader.use();
     ourShader.setInt("texture1", 0);
     ourShader.setInt("texture2", 1);
 
 
-    // render loop
-    // -----------
     while (!glfwWindowShouldClose(window))
     {
-        // input
-        // -----
         processInput(window);
 
-        // render
-        // ------
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // bind textures on corresponding texture units
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, texture2);
-  
-        // activate shader
+
         ourShader.use();
-      
-        // create transformations
-        glm::mat4 model         = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-        glm::mat4 view          = glm::mat4(1.0f);
-        glm::mat4 projection    = glm::mat4(1.0f);
+
+        // ============================================================
+        // 构造 MVP 三个矩阵
+        // ============================================================
+
+        // ---- model 矩阵：把物体放到世界里并旋转 ----
+        // 矩形默认躺在 XY 平面（z=0），从 +Z 看，转 -55° 绕 X 轴 → 向后仰，露出"地面"视角。
+        // glm::radians(deg) — 把角度转弧度。GLM 的 rotate/orth/perspective 都用弧度。
+        glm::mat4 model = glm::mat4(1.0f);
         model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+
+        // ---- view 矩阵：移动"相机" ----
+        // OpenGL 相机默认在原点 (0,0,0) 朝 -Z 看。
+        // 把场景往 -Z 平移 3（等价于相机往 +Z 退 3）→ 物体在相机前方 3 单位处。
+        // 注意：是平移场景，不是平移相机（相机永远在原点，靠移动世界来模拟相机移动）。
+        glm::mat4 view = glm::mat4(1.0f);
         view  = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+
+        // ---- projection 矩阵：透视投影（近大远小）----
+        // glm::perspective(fovy, aspect, near, far)：
+        //   fovy   — 视野（field of view）的垂直角度，45° 比较接近人眼。弧度！
+        //   aspect — 宽高比 = 屏幕宽/高（否则画面拉伸变形）
+        //   near   — 近裁剪面距离，比这近的物体被裁掉（必须 > 0）
+        //   far    — 远裁剪面距离，比这远的物体被裁掉
+        // 只有 [near, far] 范围内、视野锥体内的物体才会被渲染。
+        glm::mat4 projection = glm::mat4(1.0f);
         projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        // retrieve the matrix uniform locations
+
+        // ---- 把三个矩阵传给 shader ----
+        // 演示三种等价写法（实际工程里统一用 setMat4 即可）：
         unsigned int modelLoc = glGetUniformLocation(ourShader.ID, "model");
         unsigned int viewLoc  = glGetUniformLocation(ourShader.ID, "view");
-        // pass them to the shaders (3 different ways)
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);
-        // note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
-        ourShader.setMat4("projection", projection);
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));  // 写法1: 手动 location + value_ptr
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &view[0][0]);             // 写法2: 手动 location + 数组首元素地址
+        ourShader.setMat4("projection", projection);                       // 写法3: Shader 类封装（推荐）
 
-        // render container
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-        // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-        // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    // optional: de-allocate all resources once they've outlived their purpose:
-    // ------------------------------------------------------------------------
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
 
-    // glfw: terminate, clearing all previously allocated GLFW resources.
-    // ------------------------------------------------------------------
     glfwTerminate();
     return 0;
 }
 
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-// ---------------------------------------------------------------------------------------------------------
+
 void processInput(GLFWwindow *window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 }
 
-// glfw: whenever the window size changed (by OS or user resize) this callback function executes
-// ---------------------------------------------------------------------------------------------
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-    // make sure the viewport matches the new window dimensions; note that width and 
-    // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
 }

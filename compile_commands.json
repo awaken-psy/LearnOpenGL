@@ -1,0 +1,566 @@
+[
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/STB_IMAGE.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -o CMakeFiles\\STB_IMAGE.dir\\src\\stb_image.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\stb_image.cpp",
+  "file": "D:/cg/LearnOpenGL/src/stb_image.cpp",
+  "output": "CMakeFiles/STB_IMAGE.dir/src/stb_image.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/GLAD.dir/includes_C.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -o CMakeFiles\\GLAD.dir\\src\\glad.c.obj -c D:\\cg\\LearnOpenGL\\src\\glad.c",
+  "file": "D:/cg/LearnOpenGL/src/glad.c",
+  "output": "CMakeFiles/GLAD.dir/src/glad.c.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/1.getting_started__1.1.hello_window.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\1.getting_started__1.1.hello_window.dir\\src\\1.getting_started\\1.1.hello_window\\hello_window.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\1.getting_started\\1.1.hello_window\\hello_window.cpp",
+  "file": "D:/cg/LearnOpenGL/src/1.getting_started/1.1.hello_window/hello_window.cpp",
+  "output": "CMakeFiles/1.getting_started__1.1.hello_window.dir/src/1.getting_started/1.1.hello_window/hello_window.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/1.getting_started__1.2.hello_window_clear.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\1.getting_started__1.2.hello_window_clear.dir\\src\\1.getting_started\\1.2.hello_window_clear\\hello_window_clear.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\1.getting_started\\1.2.hello_window_clear\\hello_window_clear.cpp",
+  "file": "D:/cg/LearnOpenGL/src/1.getting_started/1.2.hello_window_clear/hello_window_clear.cpp",
+  "output": "CMakeFiles/1.getting_started__1.2.hello_window_clear.dir/src/1.getting_started/1.2.hello_window_clear/hello_window_clear.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/1.getting_started__2.1.hello_triangle.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\1.getting_started__2.1.hello_triangle.dir\\src\\1.getting_started\\2.1.hello_triangle\\hello_triangle.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\1.getting_started\\2.1.hello_triangle\\hello_triangle.cpp",
+  "file": "D:/cg/LearnOpenGL/src/1.getting_started/2.1.hello_triangle/hello_triangle.cpp",
+  "output": "CMakeFiles/1.getting_started__2.1.hello_triangle.dir/src/1.getting_started/2.1.hello_triangle/hello_triangle.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/1.getting_started__2.2.hello_triangle_indexed.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\1.getting_started__2.2.hello_triangle_indexed.dir\\src\\1.getting_started\\2.2.hello_triangle_indexed\\hello_triangle_indexed.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\1.getting_started\\2.2.hello_triangle_indexed\\hello_triangle_indexed.cpp",
+  "file": "D:/cg/LearnOpenGL/src/1.getting_started/2.2.hello_triangle_indexed/hello_triangle_indexed.cpp",
+  "output": "CMakeFiles/1.getting_started__2.2.hello_triangle_indexed.dir/src/1.getting_started/2.2.hello_triangle_indexed/hello_triangle_indexed.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/1.getting_started__2.3.hello_triangle_exercise1.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\1.getting_started__2.3.hello_triangle_exercise1.dir\\src\\1.getting_started\\2.3.hello_triangle_exercise1\\hello_triangle_exercise1.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\1.getting_started\\2.3.hello_triangle_exercise1\\hello_triangle_exercise1.cpp",
+  "file": "D:/cg/LearnOpenGL/src/1.getting_started/2.3.hello_triangle_exercise1/hello_triangle_exercise1.cpp",
+  "output": "CMakeFiles/1.getting_started__2.3.hello_triangle_exercise1.dir/src/1.getting_started/2.3.hello_triangle_exercise1/hello_triangle_exercise1.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/1.getting_started__2.4.hello_triangle_exercise2.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\1.getting_started__2.4.hello_triangle_exercise2.dir\\src\\1.getting_started\\2.4.hello_triangle_exercise2\\hello_triangle_exercise2.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\1.getting_started\\2.4.hello_triangle_exercise2\\hello_triangle_exercise2.cpp",
+  "file": "D:/cg/LearnOpenGL/src/1.getting_started/2.4.hello_triangle_exercise2/hello_triangle_exercise2.cpp",
+  "output": "CMakeFiles/1.getting_started__2.4.hello_triangle_exercise2.dir/src/1.getting_started/2.4.hello_triangle_exercise2/hello_triangle_exercise2.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/1.getting_started__2.5.hello_triangle_exercise3.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\1.getting_started__2.5.hello_triangle_exercise3.dir\\src\\1.getting_started\\2.5.hello_triangle_exercise3\\hello_triangle_exercise3.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\1.getting_started\\2.5.hello_triangle_exercise3\\hello_triangle_exercise3.cpp",
+  "file": "D:/cg/LearnOpenGL/src/1.getting_started/2.5.hello_triangle_exercise3/hello_triangle_exercise3.cpp",
+  "output": "CMakeFiles/1.getting_started__2.5.hello_triangle_exercise3.dir/src/1.getting_started/2.5.hello_triangle_exercise3/hello_triangle_exercise3.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/1.getting_started__3.1.shaders_uniform.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\1.getting_started__3.1.shaders_uniform.dir\\src\\1.getting_started\\3.1.shaders_uniform\\shaders_uniform.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\1.getting_started\\3.1.shaders_uniform\\shaders_uniform.cpp",
+  "file": "D:/cg/LearnOpenGL/src/1.getting_started/3.1.shaders_uniform/shaders_uniform.cpp",
+  "output": "CMakeFiles/1.getting_started__3.1.shaders_uniform.dir/src/1.getting_started/3.1.shaders_uniform/shaders_uniform.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/1.getting_started__3.2.shaders_interpolation.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\1.getting_started__3.2.shaders_interpolation.dir\\src\\1.getting_started\\3.2.shaders_interpolation\\shaders_interpolation.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\1.getting_started\\3.2.shaders_interpolation\\shaders_interpolation.cpp",
+  "file": "D:/cg/LearnOpenGL/src/1.getting_started/3.2.shaders_interpolation/shaders_interpolation.cpp",
+  "output": "CMakeFiles/1.getting_started__3.2.shaders_interpolation.dir/src/1.getting_started/3.2.shaders_interpolation/shaders_interpolation.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/1.getting_started__3.3.shaders_class.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\1.getting_started__3.3.shaders_class.dir\\src\\1.getting_started\\3.3.shaders_class\\shaders_class.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\1.getting_started\\3.3.shaders_class\\shaders_class.cpp",
+  "file": "D:/cg/LearnOpenGL/src/1.getting_started/3.3.shaders_class/shaders_class.cpp",
+  "output": "CMakeFiles/1.getting_started__3.3.shaders_class.dir/src/1.getting_started/3.3.shaders_class/shaders_class.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/1.getting_started__4.1.textures.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\1.getting_started__4.1.textures.dir\\src\\1.getting_started\\4.1.textures\\textures.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\1.getting_started\\4.1.textures\\textures.cpp",
+  "file": "D:/cg/LearnOpenGL/src/1.getting_started/4.1.textures/textures.cpp",
+  "output": "CMakeFiles/1.getting_started__4.1.textures.dir/src/1.getting_started/4.1.textures/textures.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/1.getting_started__4.2.textures_combined.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\1.getting_started__4.2.textures_combined.dir\\src\\1.getting_started\\4.2.textures_combined\\textures_combined.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\1.getting_started\\4.2.textures_combined\\textures_combined.cpp",
+  "file": "D:/cg/LearnOpenGL/src/1.getting_started/4.2.textures_combined/textures_combined.cpp",
+  "output": "CMakeFiles/1.getting_started__4.2.textures_combined.dir/src/1.getting_started/4.2.textures_combined/textures_combined.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/1.getting_started__4.4.textures_exercise2.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\1.getting_started__4.4.textures_exercise2.dir\\src\\1.getting_started\\4.4.textures_exercise2\\textures_exercise2.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\1.getting_started\\4.4.textures_exercise2\\textures_exercise2.cpp",
+  "file": "D:/cg/LearnOpenGL/src/1.getting_started/4.4.textures_exercise2/textures_exercise2.cpp",
+  "output": "CMakeFiles/1.getting_started__4.4.textures_exercise2.dir/src/1.getting_started/4.4.textures_exercise2/textures_exercise2.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/1.getting_started__4.5.textures_exercise3.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\1.getting_started__4.5.textures_exercise3.dir\\src\\1.getting_started\\4.5.textures_exercise3\\textures_exercise3.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\1.getting_started\\4.5.textures_exercise3\\textures_exercise3.cpp",
+  "file": "D:/cg/LearnOpenGL/src/1.getting_started/4.5.textures_exercise3/textures_exercise3.cpp",
+  "output": "CMakeFiles/1.getting_started__4.5.textures_exercise3.dir/src/1.getting_started/4.5.textures_exercise3/textures_exercise3.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/1.getting_started__4.6.textures_exercise4.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\1.getting_started__4.6.textures_exercise4.dir\\src\\1.getting_started\\4.6.textures_exercise4\\textures_exercise4.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\1.getting_started\\4.6.textures_exercise4\\textures_exercise4.cpp",
+  "file": "D:/cg/LearnOpenGL/src/1.getting_started/4.6.textures_exercise4/textures_exercise4.cpp",
+  "output": "CMakeFiles/1.getting_started__4.6.textures_exercise4.dir/src/1.getting_started/4.6.textures_exercise4/textures_exercise4.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/1.getting_started__5.1.transformations.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\1.getting_started__5.1.transformations.dir\\src\\1.getting_started\\5.1.transformations\\transformations.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\1.getting_started\\5.1.transformations\\transformations.cpp",
+  "file": "D:/cg/LearnOpenGL/src/1.getting_started/5.1.transformations/transformations.cpp",
+  "output": "CMakeFiles/1.getting_started__5.1.transformations.dir/src/1.getting_started/5.1.transformations/transformations.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/1.getting_started__5.2.transformations_exercise2.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\1.getting_started__5.2.transformations_exercise2.dir\\src\\1.getting_started\\5.2.transformations_exercise2\\transformations_exercise2.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\1.getting_started\\5.2.transformations_exercise2\\transformations_exercise2.cpp",
+  "file": "D:/cg/LearnOpenGL/src/1.getting_started/5.2.transformations_exercise2/transformations_exercise2.cpp",
+  "output": "CMakeFiles/1.getting_started__5.2.transformations_exercise2.dir/src/1.getting_started/5.2.transformations_exercise2/transformations_exercise2.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/1.getting_started__6.1.coordinate_systems.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\1.getting_started__6.1.coordinate_systems.dir\\src\\1.getting_started\\6.1.coordinate_systems\\coordinate_systems.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\1.getting_started\\6.1.coordinate_systems\\coordinate_systems.cpp",
+  "file": "D:/cg/LearnOpenGL/src/1.getting_started/6.1.coordinate_systems/coordinate_systems.cpp",
+  "output": "CMakeFiles/1.getting_started__6.1.coordinate_systems.dir/src/1.getting_started/6.1.coordinate_systems/coordinate_systems.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/1.getting_started__6.2.coordinate_systems_depth.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\1.getting_started__6.2.coordinate_systems_depth.dir\\src\\1.getting_started\\6.2.coordinate_systems_depth\\coordinate_systems_depth.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\1.getting_started\\6.2.coordinate_systems_depth\\coordinate_systems_depth.cpp",
+  "file": "D:/cg/LearnOpenGL/src/1.getting_started/6.2.coordinate_systems_depth/coordinate_systems_depth.cpp",
+  "output": "CMakeFiles/1.getting_started__6.2.coordinate_systems_depth.dir/src/1.getting_started/6.2.coordinate_systems_depth/coordinate_systems_depth.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/1.getting_started__6.3.coordinate_systems_multiple.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\1.getting_started__6.3.coordinate_systems_multiple.dir\\src\\1.getting_started\\6.3.coordinate_systems_multiple\\coordinate_systems_multiple.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\1.getting_started\\6.3.coordinate_systems_multiple\\coordinate_systems_multiple.cpp",
+  "file": "D:/cg/LearnOpenGL/src/1.getting_started/6.3.coordinate_systems_multiple/coordinate_systems_multiple.cpp",
+  "output": "CMakeFiles/1.getting_started__6.3.coordinate_systems_multiple.dir/src/1.getting_started/6.3.coordinate_systems_multiple/coordinate_systems_multiple.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/1.getting_started__7.1.camera_circle.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\1.getting_started__7.1.camera_circle.dir\\src\\1.getting_started\\7.1.camera_circle\\camera_circle.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\1.getting_started\\7.1.camera_circle\\camera_circle.cpp",
+  "file": "D:/cg/LearnOpenGL/src/1.getting_started/7.1.camera_circle/camera_circle.cpp",
+  "output": "CMakeFiles/1.getting_started__7.1.camera_circle.dir/src/1.getting_started/7.1.camera_circle/camera_circle.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/1.getting_started__7.2.camera_keyboard_dt.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\1.getting_started__7.2.camera_keyboard_dt.dir\\src\\1.getting_started\\7.2.camera_keyboard_dt\\camera_keyboard_dt.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\1.getting_started\\7.2.camera_keyboard_dt\\camera_keyboard_dt.cpp",
+  "file": "D:/cg/LearnOpenGL/src/1.getting_started/7.2.camera_keyboard_dt/camera_keyboard_dt.cpp",
+  "output": "CMakeFiles/1.getting_started__7.2.camera_keyboard_dt.dir/src/1.getting_started/7.2.camera_keyboard_dt/camera_keyboard_dt.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/1.getting_started__7.3.camera_mouse_zoom.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\1.getting_started__7.3.camera_mouse_zoom.dir\\src\\1.getting_started\\7.3.camera_mouse_zoom\\camera_mouse_zoom.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\1.getting_started\\7.3.camera_mouse_zoom\\camera_mouse_zoom.cpp",
+  "file": "D:/cg/LearnOpenGL/src/1.getting_started/7.3.camera_mouse_zoom/camera_mouse_zoom.cpp",
+  "output": "CMakeFiles/1.getting_started__7.3.camera_mouse_zoom.dir/src/1.getting_started/7.3.camera_mouse_zoom/camera_mouse_zoom.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/1.getting_started__7.4.camera_class.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\1.getting_started__7.4.camera_class.dir\\src\\1.getting_started\\7.4.camera_class\\camera_class.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\1.getting_started\\7.4.camera_class\\camera_class.cpp",
+  "file": "D:/cg/LearnOpenGL/src/1.getting_started/7.4.camera_class/camera_class.cpp",
+  "output": "CMakeFiles/1.getting_started__7.4.camera_class.dir/src/1.getting_started/7.4.camera_class/camera_class.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/2.lighting__1.colors.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\2.lighting__1.colors.dir\\src\\2.lighting\\1.colors\\colors.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\2.lighting\\1.colors\\colors.cpp",
+  "file": "D:/cg/LearnOpenGL/src/2.lighting/1.colors/colors.cpp",
+  "output": "CMakeFiles/2.lighting__1.colors.dir/src/2.lighting/1.colors/colors.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/2.lighting__2.1.basic_lighting_diffuse.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\2.lighting__2.1.basic_lighting_diffuse.dir\\src\\2.lighting\\2.1.basic_lighting_diffuse\\basic_lighting_diffuse.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\2.lighting\\2.1.basic_lighting_diffuse\\basic_lighting_diffuse.cpp",
+  "file": "D:/cg/LearnOpenGL/src/2.lighting/2.1.basic_lighting_diffuse/basic_lighting_diffuse.cpp",
+  "output": "CMakeFiles/2.lighting__2.1.basic_lighting_diffuse.dir/src/2.lighting/2.1.basic_lighting_diffuse/basic_lighting_diffuse.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/2.lighting__2.2.basic_lighting_specular.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\2.lighting__2.2.basic_lighting_specular.dir\\src\\2.lighting\\2.2.basic_lighting_specular\\basic_lighting_specular.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\2.lighting\\2.2.basic_lighting_specular\\basic_lighting_specular.cpp",
+  "file": "D:/cg/LearnOpenGL/src/2.lighting/2.2.basic_lighting_specular/basic_lighting_specular.cpp",
+  "output": "CMakeFiles/2.lighting__2.2.basic_lighting_specular.dir/src/2.lighting/2.2.basic_lighting_specular/basic_lighting_specular.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/2.lighting__3.1.materials.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\2.lighting__3.1.materials.dir\\src\\2.lighting\\3.1.materials\\materials.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\2.lighting\\3.1.materials\\materials.cpp",
+  "file": "D:/cg/LearnOpenGL/src/2.lighting/3.1.materials/materials.cpp",
+  "output": "CMakeFiles/2.lighting__3.1.materials.dir/src/2.lighting/3.1.materials/materials.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/2.lighting__3.2.materials_exercise1.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\2.lighting__3.2.materials_exercise1.dir\\src\\2.lighting\\3.2.materials_exercise1\\materials_exercise1.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\2.lighting\\3.2.materials_exercise1\\materials_exercise1.cpp",
+  "file": "D:/cg/LearnOpenGL/src/2.lighting/3.2.materials_exercise1/materials_exercise1.cpp",
+  "output": "CMakeFiles/2.lighting__3.2.materials_exercise1.dir/src/2.lighting/3.2.materials_exercise1/materials_exercise1.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/2.lighting__4.1.lighting_maps_diffuse_map.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\2.lighting__4.1.lighting_maps_diffuse_map.dir\\src\\2.lighting\\4.1.lighting_maps_diffuse_map\\lighting_maps_diffuse.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\2.lighting\\4.1.lighting_maps_diffuse_map\\lighting_maps_diffuse.cpp",
+  "file": "D:/cg/LearnOpenGL/src/2.lighting/4.1.lighting_maps_diffuse_map/lighting_maps_diffuse.cpp",
+  "output": "CMakeFiles/2.lighting__4.1.lighting_maps_diffuse_map.dir/src/2.lighting/4.1.lighting_maps_diffuse_map/lighting_maps_diffuse.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/2.lighting__4.2.lighting_maps_specular_map.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\2.lighting__4.2.lighting_maps_specular_map.dir\\src\\2.lighting\\4.2.lighting_maps_specular_map\\lighting_maps_specular.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\2.lighting\\4.2.lighting_maps_specular_map\\lighting_maps_specular.cpp",
+  "file": "D:/cg/LearnOpenGL/src/2.lighting/4.2.lighting_maps_specular_map/lighting_maps_specular.cpp",
+  "output": "CMakeFiles/2.lighting__4.2.lighting_maps_specular_map.dir/src/2.lighting/4.2.lighting_maps_specular_map/lighting_maps_specular.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/2.lighting__4.4.lighting_maps_exercise4.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\2.lighting__4.4.lighting_maps_exercise4.dir\\src\\2.lighting\\4.4.lighting_maps_exercise4\\lighting_maps_exercise4.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\2.lighting\\4.4.lighting_maps_exercise4\\lighting_maps_exercise4.cpp",
+  "file": "D:/cg/LearnOpenGL/src/2.lighting/4.4.lighting_maps_exercise4/lighting_maps_exercise4.cpp",
+  "output": "CMakeFiles/2.lighting__4.4.lighting_maps_exercise4.dir/src/2.lighting/4.4.lighting_maps_exercise4/lighting_maps_exercise4.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/2.lighting__5.1.light_casters_directional.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\2.lighting__5.1.light_casters_directional.dir\\src\\2.lighting\\5.1.light_casters_directional\\light_casters_directional.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\2.lighting\\5.1.light_casters_directional\\light_casters_directional.cpp",
+  "file": "D:/cg/LearnOpenGL/src/2.lighting/5.1.light_casters_directional/light_casters_directional.cpp",
+  "output": "CMakeFiles/2.lighting__5.1.light_casters_directional.dir/src/2.lighting/5.1.light_casters_directional/light_casters_directional.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/2.lighting__5.2.light_casters_point.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\2.lighting__5.2.light_casters_point.dir\\src\\2.lighting\\5.2.light_casters_point\\light_casters_point.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\2.lighting\\5.2.light_casters_point\\light_casters_point.cpp",
+  "file": "D:/cg/LearnOpenGL/src/2.lighting/5.2.light_casters_point/light_casters_point.cpp",
+  "output": "CMakeFiles/2.lighting__5.2.light_casters_point.dir/src/2.lighting/5.2.light_casters_point/light_casters_point.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/2.lighting__5.3.light_casters_spot.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\2.lighting__5.3.light_casters_spot.dir\\src\\2.lighting\\5.3.light_casters_spot\\light_casters_spot.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\2.lighting\\5.3.light_casters_spot\\light_casters_spot.cpp",
+  "file": "D:/cg/LearnOpenGL/src/2.lighting/5.3.light_casters_spot/light_casters_spot.cpp",
+  "output": "CMakeFiles/2.lighting__5.3.light_casters_spot.dir/src/2.lighting/5.3.light_casters_spot/light_casters_spot.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/2.lighting__5.4.light_casters_spot_soft.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\2.lighting__5.4.light_casters_spot_soft.dir\\src\\2.lighting\\5.4.light_casters_spot_soft\\light_casters_spot_soft.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\2.lighting\\5.4.light_casters_spot_soft\\light_casters_spot_soft.cpp",
+  "file": "D:/cg/LearnOpenGL/src/2.lighting/5.4.light_casters_spot_soft/light_casters_spot_soft.cpp",
+  "output": "CMakeFiles/2.lighting__5.4.light_casters_spot_soft.dir/src/2.lighting/5.4.light_casters_spot_soft/light_casters_spot_soft.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/2.lighting__6.multiple_lights.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\2.lighting__6.multiple_lights.dir\\src\\2.lighting\\6.multiple_lights\\multiple_lights.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\2.lighting\\6.multiple_lights\\multiple_lights.cpp",
+  "file": "D:/cg/LearnOpenGL/src/2.lighting/6.multiple_lights/multiple_lights.cpp",
+  "output": "CMakeFiles/2.lighting__6.multiple_lights.dir/src/2.lighting/6.multiple_lights/multiple_lights.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/3.model_loading__1.model_loading.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\3.model_loading__1.model_loading.dir\\src\\3.model_loading\\1.model_loading\\model_loading.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\3.model_loading\\1.model_loading\\model_loading.cpp",
+  "file": "D:/cg/LearnOpenGL/src/3.model_loading/1.model_loading/model_loading.cpp",
+  "output": "CMakeFiles/3.model_loading__1.model_loading.dir/src/3.model_loading/1.model_loading/model_loading.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/4.advanced_opengl__1.1.depth_testing.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\4.advanced_opengl__1.1.depth_testing.dir\\src\\4.advanced_opengl\\1.1.depth_testing\\depth_testing.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\4.advanced_opengl\\1.1.depth_testing\\depth_testing.cpp",
+  "file": "D:/cg/LearnOpenGL/src/4.advanced_opengl/1.1.depth_testing/depth_testing.cpp",
+  "output": "CMakeFiles/4.advanced_opengl__1.1.depth_testing.dir/src/4.advanced_opengl/1.1.depth_testing/depth_testing.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/4.advanced_opengl__1.2.depth_testing_view.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\4.advanced_opengl__1.2.depth_testing_view.dir\\src\\4.advanced_opengl\\1.2.depth_testing_view\\depth_testing_view.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\4.advanced_opengl\\1.2.depth_testing_view\\depth_testing_view.cpp",
+  "file": "D:/cg/LearnOpenGL/src/4.advanced_opengl/1.2.depth_testing_view/depth_testing_view.cpp",
+  "output": "CMakeFiles/4.advanced_opengl__1.2.depth_testing_view.dir/src/4.advanced_opengl/1.2.depth_testing_view/depth_testing_view.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/4.advanced_opengl__2.stencil_testing.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\4.advanced_opengl__2.stencil_testing.dir\\src\\4.advanced_opengl\\2.stencil_testing\\stencil_testing.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\4.advanced_opengl\\2.stencil_testing\\stencil_testing.cpp",
+  "file": "D:/cg/LearnOpenGL/src/4.advanced_opengl/2.stencil_testing/stencil_testing.cpp",
+  "output": "CMakeFiles/4.advanced_opengl__2.stencil_testing.dir/src/4.advanced_opengl/2.stencil_testing/stencil_testing.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/4.advanced_opengl__3.1.blending_discard.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\4.advanced_opengl__3.1.blending_discard.dir\\src\\4.advanced_opengl\\3.1.blending_discard\\blending_discard.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\4.advanced_opengl\\3.1.blending_discard\\blending_discard.cpp",
+  "file": "D:/cg/LearnOpenGL/src/4.advanced_opengl/3.1.blending_discard/blending_discard.cpp",
+  "output": "CMakeFiles/4.advanced_opengl__3.1.blending_discard.dir/src/4.advanced_opengl/3.1.blending_discard/blending_discard.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/4.advanced_opengl__3.2.blending_sort.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\4.advanced_opengl__3.2.blending_sort.dir\\src\\4.advanced_opengl\\3.2.blending_sort\\blending_sorted.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\4.advanced_opengl\\3.2.blending_sort\\blending_sorted.cpp",
+  "file": "D:/cg/LearnOpenGL/src/4.advanced_opengl/3.2.blending_sort/blending_sorted.cpp",
+  "output": "CMakeFiles/4.advanced_opengl__3.2.blending_sort.dir/src/4.advanced_opengl/3.2.blending_sort/blending_sorted.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/4.advanced_opengl__5.1.framebuffers.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\4.advanced_opengl__5.1.framebuffers.dir\\src\\4.advanced_opengl\\5.1.framebuffers\\framebuffers.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\4.advanced_opengl\\5.1.framebuffers\\framebuffers.cpp",
+  "file": "D:/cg/LearnOpenGL/src/4.advanced_opengl/5.1.framebuffers/framebuffers.cpp",
+  "output": "CMakeFiles/4.advanced_opengl__5.1.framebuffers.dir/src/4.advanced_opengl/5.1.framebuffers/framebuffers.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/4.advanced_opengl__5.2.framebuffers_exercise1.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\4.advanced_opengl__5.2.framebuffers_exercise1.dir\\src\\4.advanced_opengl\\5.2.framebuffers_exercise1\\framebuffers_exercise1.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\4.advanced_opengl\\5.2.framebuffers_exercise1\\framebuffers_exercise1.cpp",
+  "file": "D:/cg/LearnOpenGL/src/4.advanced_opengl/5.2.framebuffers_exercise1/framebuffers_exercise1.cpp",
+  "output": "CMakeFiles/4.advanced_opengl__5.2.framebuffers_exercise1.dir/src/4.advanced_opengl/5.2.framebuffers_exercise1/framebuffers_exercise1.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/4.advanced_opengl__6.1.cubemaps_skybox.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\4.advanced_opengl__6.1.cubemaps_skybox.dir\\src\\4.advanced_opengl\\6.1.cubemaps_skybox\\cubemaps_skybox.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\4.advanced_opengl\\6.1.cubemaps_skybox\\cubemaps_skybox.cpp",
+  "file": "D:/cg/LearnOpenGL/src/4.advanced_opengl/6.1.cubemaps_skybox/cubemaps_skybox.cpp",
+  "output": "CMakeFiles/4.advanced_opengl__6.1.cubemaps_skybox.dir/src/4.advanced_opengl/6.1.cubemaps_skybox/cubemaps_skybox.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/4.advanced_opengl__6.2.cubemaps_environment_mapping.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\4.advanced_opengl__6.2.cubemaps_environment_mapping.dir\\src\\4.advanced_opengl\\6.2.cubemaps_environment_mapping\\cubemaps_environment_mapping.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\4.advanced_opengl\\6.2.cubemaps_environment_mapping\\cubemaps_environment_mapping.cpp",
+  "file": "D:/cg/LearnOpenGL/src/4.advanced_opengl/6.2.cubemaps_environment_mapping/cubemaps_environment_mapping.cpp",
+  "output": "CMakeFiles/4.advanced_opengl__6.2.cubemaps_environment_mapping.dir/src/4.advanced_opengl/6.2.cubemaps_environment_mapping/cubemaps_environment_mapping.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/4.advanced_opengl__8.advanced_glsl_ubo.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\4.advanced_opengl__8.advanced_glsl_ubo.dir\\src\\4.advanced_opengl\\8.advanced_glsl_ubo\\advanced_glsl_ubo.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\4.advanced_opengl\\8.advanced_glsl_ubo\\advanced_glsl_ubo.cpp",
+  "file": "D:/cg/LearnOpenGL/src/4.advanced_opengl/8.advanced_glsl_ubo/advanced_glsl_ubo.cpp",
+  "output": "CMakeFiles/4.advanced_opengl__8.advanced_glsl_ubo.dir/src/4.advanced_opengl/8.advanced_glsl_ubo/advanced_glsl_ubo.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/4.advanced_opengl__9.1.geometry_shader_houses.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\4.advanced_opengl__9.1.geometry_shader_houses.dir\\src\\4.advanced_opengl\\9.1.geometry_shader_houses\\geometry_shader_houses.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\4.advanced_opengl\\9.1.geometry_shader_houses\\geometry_shader_houses.cpp",
+  "file": "D:/cg/LearnOpenGL/src/4.advanced_opengl/9.1.geometry_shader_houses/geometry_shader_houses.cpp",
+  "output": "CMakeFiles/4.advanced_opengl__9.1.geometry_shader_houses.dir/src/4.advanced_opengl/9.1.geometry_shader_houses/geometry_shader_houses.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/4.advanced_opengl__9.2.geometry_shader_exploding.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\4.advanced_opengl__9.2.geometry_shader_exploding.dir\\src\\4.advanced_opengl\\9.2.geometry_shader_exploding\\geometry_shader_exploding.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\4.advanced_opengl\\9.2.geometry_shader_exploding\\geometry_shader_exploding.cpp",
+  "file": "D:/cg/LearnOpenGL/src/4.advanced_opengl/9.2.geometry_shader_exploding/geometry_shader_exploding.cpp",
+  "output": "CMakeFiles/4.advanced_opengl__9.2.geometry_shader_exploding.dir/src/4.advanced_opengl/9.2.geometry_shader_exploding/geometry_shader_exploding.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/4.advanced_opengl__9.3.geometry_shader_normals.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\4.advanced_opengl__9.3.geometry_shader_normals.dir\\src\\4.advanced_opengl\\9.3.geometry_shader_normals\\normal_visualization.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\4.advanced_opengl\\9.3.geometry_shader_normals\\normal_visualization.cpp",
+  "file": "D:/cg/LearnOpenGL/src/4.advanced_opengl/9.3.geometry_shader_normals/normal_visualization.cpp",
+  "output": "CMakeFiles/4.advanced_opengl__9.3.geometry_shader_normals.dir/src/4.advanced_opengl/9.3.geometry_shader_normals/normal_visualization.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/4.advanced_opengl__10.1.instancing_quads.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\4.advanced_opengl__10.1.instancing_quads.dir\\src\\4.advanced_opengl\\10.1.instancing_quads\\instancing_quads.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\4.advanced_opengl\\10.1.instancing_quads\\instancing_quads.cpp",
+  "file": "D:/cg/LearnOpenGL/src/4.advanced_opengl/10.1.instancing_quads/instancing_quads.cpp",
+  "output": "CMakeFiles/4.advanced_opengl__10.1.instancing_quads.dir/src/4.advanced_opengl/10.1.instancing_quads/instancing_quads.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/4.advanced_opengl__10.2.asteroids.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\4.advanced_opengl__10.2.asteroids.dir\\src\\4.advanced_opengl\\10.2.asteroids\\asteroids.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\4.advanced_opengl\\10.2.asteroids\\asteroids.cpp",
+  "file": "D:/cg/LearnOpenGL/src/4.advanced_opengl/10.2.asteroids/asteroids.cpp",
+  "output": "CMakeFiles/4.advanced_opengl__10.2.asteroids.dir/src/4.advanced_opengl/10.2.asteroids/asteroids.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/4.advanced_opengl__10.3.asteroids_instanced.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\4.advanced_opengl__10.3.asteroids_instanced.dir\\src\\4.advanced_opengl\\10.3.asteroids_instanced\\asteroids_instanced.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\4.advanced_opengl\\10.3.asteroids_instanced\\asteroids_instanced.cpp",
+  "file": "D:/cg/LearnOpenGL/src/4.advanced_opengl/10.3.asteroids_instanced/asteroids_instanced.cpp",
+  "output": "CMakeFiles/4.advanced_opengl__10.3.asteroids_instanced.dir/src/4.advanced_opengl/10.3.asteroids_instanced/asteroids_instanced.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/4.advanced_opengl__11.1.anti_aliasing_msaa.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\4.advanced_opengl__11.1.anti_aliasing_msaa.dir\\src\\4.advanced_opengl\\11.1.anti_aliasing_msaa\\anti_aliasing_msaa.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\4.advanced_opengl\\11.1.anti_aliasing_msaa\\anti_aliasing_msaa.cpp",
+  "file": "D:/cg/LearnOpenGL/src/4.advanced_opengl/11.1.anti_aliasing_msaa/anti_aliasing_msaa.cpp",
+  "output": "CMakeFiles/4.advanced_opengl__11.1.anti_aliasing_msaa.dir/src/4.advanced_opengl/11.1.anti_aliasing_msaa/anti_aliasing_msaa.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/4.advanced_opengl__11.2.anti_aliasing_offscreen.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\4.advanced_opengl__11.2.anti_aliasing_offscreen.dir\\src\\4.advanced_opengl\\11.2.anti_aliasing_offscreen\\anti_aliasing_offscreen.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\4.advanced_opengl\\11.2.anti_aliasing_offscreen\\anti_aliasing_offscreen.cpp",
+  "file": "D:/cg/LearnOpenGL/src/4.advanced_opengl/11.2.anti_aliasing_offscreen/anti_aliasing_offscreen.cpp",
+  "output": "CMakeFiles/4.advanced_opengl__11.2.anti_aliasing_offscreen.dir/src/4.advanced_opengl/11.2.anti_aliasing_offscreen/anti_aliasing_offscreen.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/5.advanced_lighting__1.advanced_lighting.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\5.advanced_lighting__1.advanced_lighting.dir\\src\\5.advanced_lighting\\1.advanced_lighting\\advanced_lighting.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\5.advanced_lighting\\1.advanced_lighting\\advanced_lighting.cpp",
+  "file": "D:/cg/LearnOpenGL/src/5.advanced_lighting/1.advanced_lighting/advanced_lighting.cpp",
+  "output": "CMakeFiles/5.advanced_lighting__1.advanced_lighting.dir/src/5.advanced_lighting/1.advanced_lighting/advanced_lighting.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/5.advanced_lighting__2.gamma_correction.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\5.advanced_lighting__2.gamma_correction.dir\\src\\5.advanced_lighting\\2.gamma_correction\\gamma_correction.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\5.advanced_lighting\\2.gamma_correction\\gamma_correction.cpp",
+  "file": "D:/cg/LearnOpenGL/src/5.advanced_lighting/2.gamma_correction/gamma_correction.cpp",
+  "output": "CMakeFiles/5.advanced_lighting__2.gamma_correction.dir/src/5.advanced_lighting/2.gamma_correction/gamma_correction.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/5.advanced_lighting__3.1.1.shadow_mapping_depth.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\5.advanced_lighting__3.1.1.shadow_mapping_depth.dir\\src\\5.advanced_lighting\\3.1.1.shadow_mapping_depth\\shadow_mapping_depth.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\5.advanced_lighting\\3.1.1.shadow_mapping_depth\\shadow_mapping_depth.cpp",
+  "file": "D:/cg/LearnOpenGL/src/5.advanced_lighting/3.1.1.shadow_mapping_depth/shadow_mapping_depth.cpp",
+  "output": "CMakeFiles/5.advanced_lighting__3.1.1.shadow_mapping_depth.dir/src/5.advanced_lighting/3.1.1.shadow_mapping_depth/shadow_mapping_depth.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/5.advanced_lighting__3.1.2.shadow_mapping_base.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\5.advanced_lighting__3.1.2.shadow_mapping_base.dir\\src\\5.advanced_lighting\\3.1.2.shadow_mapping_base\\shadow_mapping_base.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\5.advanced_lighting\\3.1.2.shadow_mapping_base\\shadow_mapping_base.cpp",
+  "file": "D:/cg/LearnOpenGL/src/5.advanced_lighting/3.1.2.shadow_mapping_base/shadow_mapping_base.cpp",
+  "output": "CMakeFiles/5.advanced_lighting__3.1.2.shadow_mapping_base.dir/src/5.advanced_lighting/3.1.2.shadow_mapping_base/shadow_mapping_base.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/5.advanced_lighting__3.1.3.shadow_mapping.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\5.advanced_lighting__3.1.3.shadow_mapping.dir\\src\\5.advanced_lighting\\3.1.3.shadow_mapping\\shadow_mapping.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\5.advanced_lighting\\3.1.3.shadow_mapping\\shadow_mapping.cpp",
+  "file": "D:/cg/LearnOpenGL/src/5.advanced_lighting/3.1.3.shadow_mapping/shadow_mapping.cpp",
+  "output": "CMakeFiles/5.advanced_lighting__3.1.3.shadow_mapping.dir/src/5.advanced_lighting/3.1.3.shadow_mapping/shadow_mapping.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/5.advanced_lighting__3.2.1.point_shadows.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\5.advanced_lighting__3.2.1.point_shadows.dir\\src\\5.advanced_lighting\\3.2.1.point_shadows\\point_shadows.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\5.advanced_lighting\\3.2.1.point_shadows\\point_shadows.cpp",
+  "file": "D:/cg/LearnOpenGL/src/5.advanced_lighting/3.2.1.point_shadows/point_shadows.cpp",
+  "output": "CMakeFiles/5.advanced_lighting__3.2.1.point_shadows.dir/src/5.advanced_lighting/3.2.1.point_shadows/point_shadows.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/5.advanced_lighting__3.2.2.point_shadows_soft.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\5.advanced_lighting__3.2.2.point_shadows_soft.dir\\src\\5.advanced_lighting\\3.2.2.point_shadows_soft\\point_shadows_soft.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\5.advanced_lighting\\3.2.2.point_shadows_soft\\point_shadows_soft.cpp",
+  "file": "D:/cg/LearnOpenGL/src/5.advanced_lighting/3.2.2.point_shadows_soft/point_shadows_soft.cpp",
+  "output": "CMakeFiles/5.advanced_lighting__3.2.2.point_shadows_soft.dir/src/5.advanced_lighting/3.2.2.point_shadows_soft/point_shadows_soft.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/5.advanced_lighting__4.normal_mapping.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\5.advanced_lighting__4.normal_mapping.dir\\src\\5.advanced_lighting\\4.normal_mapping\\normal_mapping.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\5.advanced_lighting\\4.normal_mapping\\normal_mapping.cpp",
+  "file": "D:/cg/LearnOpenGL/src/5.advanced_lighting/4.normal_mapping/normal_mapping.cpp",
+  "output": "CMakeFiles/5.advanced_lighting__4.normal_mapping.dir/src/5.advanced_lighting/4.normal_mapping/normal_mapping.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/5.advanced_lighting__5.1.parallax_mapping.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\5.advanced_lighting__5.1.parallax_mapping.dir\\src\\5.advanced_lighting\\5.1.parallax_mapping\\parallax_mapping.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\5.advanced_lighting\\5.1.parallax_mapping\\parallax_mapping.cpp",
+  "file": "D:/cg/LearnOpenGL/src/5.advanced_lighting/5.1.parallax_mapping/parallax_mapping.cpp",
+  "output": "CMakeFiles/5.advanced_lighting__5.1.parallax_mapping.dir/src/5.advanced_lighting/5.1.parallax_mapping/parallax_mapping.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/5.advanced_lighting__5.2.steep_parallax_mapping.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\5.advanced_lighting__5.2.steep_parallax_mapping.dir\\src\\5.advanced_lighting\\5.2.steep_parallax_mapping\\steep_parallax_mapping.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\5.advanced_lighting\\5.2.steep_parallax_mapping\\steep_parallax_mapping.cpp",
+  "file": "D:/cg/LearnOpenGL/src/5.advanced_lighting/5.2.steep_parallax_mapping/steep_parallax_mapping.cpp",
+  "output": "CMakeFiles/5.advanced_lighting__5.2.steep_parallax_mapping.dir/src/5.advanced_lighting/5.2.steep_parallax_mapping/steep_parallax_mapping.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/5.advanced_lighting__5.3.parallax_occlusion_mapping.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\5.advanced_lighting__5.3.parallax_occlusion_mapping.dir\\src\\5.advanced_lighting\\5.3.parallax_occlusion_mapping\\parallax_occlusion_mapping.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\5.advanced_lighting\\5.3.parallax_occlusion_mapping\\parallax_occlusion_mapping.cpp",
+  "file": "D:/cg/LearnOpenGL/src/5.advanced_lighting/5.3.parallax_occlusion_mapping/parallax_occlusion_mapping.cpp",
+  "output": "CMakeFiles/5.advanced_lighting__5.3.parallax_occlusion_mapping.dir/src/5.advanced_lighting/5.3.parallax_occlusion_mapping/parallax_occlusion_mapping.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/5.advanced_lighting__6.hdr.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\5.advanced_lighting__6.hdr.dir\\src\\5.advanced_lighting\\6.hdr\\hdr.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\5.advanced_lighting\\6.hdr\\hdr.cpp",
+  "file": "D:/cg/LearnOpenGL/src/5.advanced_lighting/6.hdr/hdr.cpp",
+  "output": "CMakeFiles/5.advanced_lighting__6.hdr.dir/src/5.advanced_lighting/6.hdr/hdr.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/5.advanced_lighting__7.bloom.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\5.advanced_lighting__7.bloom.dir\\src\\5.advanced_lighting\\7.bloom\\bloom.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\5.advanced_lighting\\7.bloom\\bloom.cpp",
+  "file": "D:/cg/LearnOpenGL/src/5.advanced_lighting/7.bloom/bloom.cpp",
+  "output": "CMakeFiles/5.advanced_lighting__7.bloom.dir/src/5.advanced_lighting/7.bloom/bloom.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/5.advanced_lighting__8.1.deferred_shading.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\5.advanced_lighting__8.1.deferred_shading.dir\\src\\5.advanced_lighting\\8.1.deferred_shading\\deferred_shading.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\5.advanced_lighting\\8.1.deferred_shading\\deferred_shading.cpp",
+  "file": "D:/cg/LearnOpenGL/src/5.advanced_lighting/8.1.deferred_shading/deferred_shading.cpp",
+  "output": "CMakeFiles/5.advanced_lighting__8.1.deferred_shading.dir/src/5.advanced_lighting/8.1.deferred_shading/deferred_shading.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/5.advanced_lighting__8.2.deferred_shading_volumes.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\5.advanced_lighting__8.2.deferred_shading_volumes.dir\\src\\5.advanced_lighting\\8.2.deferred_shading_volumes\\deferred_shading_volumes.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\5.advanced_lighting\\8.2.deferred_shading_volumes\\deferred_shading_volumes.cpp",
+  "file": "D:/cg/LearnOpenGL/src/5.advanced_lighting/8.2.deferred_shading_volumes/deferred_shading_volumes.cpp",
+  "output": "CMakeFiles/5.advanced_lighting__8.2.deferred_shading_volumes.dir/src/5.advanced_lighting/8.2.deferred_shading_volumes/deferred_shading_volumes.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/5.advanced_lighting__9.ssao.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\5.advanced_lighting__9.ssao.dir\\src\\5.advanced_lighting\\9.ssao\\ssao.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\5.advanced_lighting\\9.ssao\\ssao.cpp",
+  "file": "D:/cg/LearnOpenGL/src/5.advanced_lighting/9.ssao/ssao.cpp",
+  "output": "CMakeFiles/5.advanced_lighting__9.ssao.dir/src/5.advanced_lighting/9.ssao/ssao.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/6.pbr__1.1.lighting.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\6.pbr__1.1.lighting.dir\\src\\6.pbr\\1.1.lighting\\lighting.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\6.pbr\\1.1.lighting\\lighting.cpp",
+  "file": "D:/cg/LearnOpenGL/src/6.pbr/1.1.lighting/lighting.cpp",
+  "output": "CMakeFiles/6.pbr__1.1.lighting.dir/src/6.pbr/1.1.lighting/lighting.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/6.pbr__1.2.lighting_textured.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\6.pbr__1.2.lighting_textured.dir\\src\\6.pbr\\1.2.lighting_textured\\lighting_textured.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\6.pbr\\1.2.lighting_textured\\lighting_textured.cpp",
+  "file": "D:/cg/LearnOpenGL/src/6.pbr/1.2.lighting_textured/lighting_textured.cpp",
+  "output": "CMakeFiles/6.pbr__1.2.lighting_textured.dir/src/6.pbr/1.2.lighting_textured/lighting_textured.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/6.pbr__2.1.1.ibl_irradiance_conversion.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\6.pbr__2.1.1.ibl_irradiance_conversion.dir\\src\\6.pbr\\2.1.1.ibl_irradiance_conversion\\ibl_irradiance_conversion.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\6.pbr\\2.1.1.ibl_irradiance_conversion\\ibl_irradiance_conversion.cpp",
+  "file": "D:/cg/LearnOpenGL/src/6.pbr/2.1.1.ibl_irradiance_conversion/ibl_irradiance_conversion.cpp",
+  "output": "CMakeFiles/6.pbr__2.1.1.ibl_irradiance_conversion.dir/src/6.pbr/2.1.1.ibl_irradiance_conversion/ibl_irradiance_conversion.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/6.pbr__2.1.2.ibl_irradiance.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\6.pbr__2.1.2.ibl_irradiance.dir\\src\\6.pbr\\2.1.2.ibl_irradiance\\ibl_irradiance.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\6.pbr\\2.1.2.ibl_irradiance\\ibl_irradiance.cpp",
+  "file": "D:/cg/LearnOpenGL/src/6.pbr/2.1.2.ibl_irradiance/ibl_irradiance.cpp",
+  "output": "CMakeFiles/6.pbr__2.1.2.ibl_irradiance.dir/src/6.pbr/2.1.2.ibl_irradiance/ibl_irradiance.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/6.pbr__2.2.1.ibl_specular.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\6.pbr__2.2.1.ibl_specular.dir\\src\\6.pbr\\2.2.1.ibl_specular\\ibl_specular.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\6.pbr\\2.2.1.ibl_specular\\ibl_specular.cpp",
+  "file": "D:/cg/LearnOpenGL/src/6.pbr/2.2.1.ibl_specular/ibl_specular.cpp",
+  "output": "CMakeFiles/6.pbr__2.2.1.ibl_specular.dir/src/6.pbr/2.2.1.ibl_specular/ibl_specular.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/6.pbr__2.2.2.ibl_specular_textured.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\6.pbr__2.2.2.ibl_specular_textured.dir\\src\\6.pbr\\2.2.2.ibl_specular_textured\\ibl_specular_textured.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\6.pbr\\2.2.2.ibl_specular_textured\\ibl_specular_textured.cpp",
+  "file": "D:/cg/LearnOpenGL/src/6.pbr/2.2.2.ibl_specular_textured/ibl_specular_textured.cpp",
+  "output": "CMakeFiles/6.pbr__2.2.2.ibl_specular_textured.dir/src/6.pbr/2.2.2.ibl_specular_textured/ibl_specular_textured.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/7.in_practice__1.debugging.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\7.in_practice__1.debugging.dir\\src\\7.in_practice\\1.debugging\\debugging.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\7.in_practice\\1.debugging\\debugging.cpp",
+  "file": "D:/cg/LearnOpenGL/src/7.in_practice/1.debugging/debugging.cpp",
+  "output": "CMakeFiles/7.in_practice__1.debugging.dir/src/7.in_practice/1.debugging/debugging.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/7.in_practice__2.text_rendering.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\7.in_practice__2.text_rendering.dir\\src\\7.in_practice\\2.text_rendering\\text_rendering.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\7.in_practice\\2.text_rendering\\text_rendering.cpp",
+  "file": "D:/cg/LearnOpenGL/src/7.in_practice/2.text_rendering/text_rendering.cpp",
+  "output": "CMakeFiles/7.in_practice__2.text_rendering.dir/src/7.in_practice/2.text_rendering/text_rendering.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/8.guest_2020_oit.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\8.guest_2020_oit.dir\\src\\8.guest\\2020\\oit\\weighted_blended.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\8.guest\\2020\\oit\\weighted_blended.cpp",
+  "file": "D:/cg/LearnOpenGL/src/8.guest/2020/oit/weighted_blended.cpp",
+  "output": "CMakeFiles/8.guest_2020_oit.dir/src/8.guest/2020/oit/weighted_blended.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/8.guest_2020_skeletal_animation.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\8.guest_2020_skeletal_animation.dir\\src\\8.guest\\2020\\skeletal_animation\\skeletal_animation.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\8.guest\\2020\\skeletal_animation\\skeletal_animation.cpp",
+  "file": "D:/cg/LearnOpenGL/src/8.guest/2020/skeletal_animation/skeletal_animation.cpp",
+  "output": "CMakeFiles/8.guest_2020_skeletal_animation.dir/src/8.guest/2020/skeletal_animation/skeletal_animation.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/8.guest_2021_1.scene_1.scene_graph.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\8.guest_2021_1.scene_1.scene_graph.dir\\src\\8.guest\\2021\\1.scene\\1.scene_graph\\scene_graph.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\8.guest\\2021\\1.scene\\1.scene_graph\\scene_graph.cpp",
+  "file": "D:/cg/LearnOpenGL/src/8.guest/2021/1.scene/1.scene_graph/scene_graph.cpp",
+  "output": "CMakeFiles/8.guest_2021_1.scene_1.scene_graph.dir/src/8.guest/2021/1.scene/1.scene_graph/scene_graph.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/8.guest_2021_1.scene_2.frustum_culling.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\8.guest_2021_1.scene_2.frustum_culling.dir\\src\\8.guest\\2021\\1.scene\\2.frustum_culling\\frustum_culling.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\8.guest\\2021\\1.scene\\2.frustum_culling\\frustum_culling.cpp",
+  "file": "D:/cg/LearnOpenGL/src/8.guest/2021/1.scene/2.frustum_culling/frustum_culling.cpp",
+  "output": "CMakeFiles/8.guest_2021_1.scene_2.frustum_culling.dir/src/8.guest/2021/1.scene/2.frustum_culling/frustum_culling.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/8.guest_2021_2.csm.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\8.guest_2021_2.csm.dir\\src\\8.guest\\2021\\2.csm\\shadow_mapping.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\8.guest\\2021\\2.csm\\shadow_mapping.cpp",
+  "file": "D:/cg/LearnOpenGL/src/8.guest/2021/2.csm/shadow_mapping.cpp",
+  "output": "CMakeFiles/8.guest_2021_2.csm.dir/src/8.guest/2021/2.csm/shadow_mapping.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/8.guest_2021_3.tessellation_terrain_gpu_dist.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\8.guest_2021_3.tessellation_terrain_gpu_dist.dir\\src\\8.guest\\2021\\3.tessellation\\terrain_gpu_dist\\main.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\8.guest\\2021\\3.tessellation\\terrain_gpu_dist\\main.cpp",
+  "file": "D:/cg/LearnOpenGL/src/8.guest/2021/3.tessellation/terrain_gpu_dist/main.cpp",
+  "output": "CMakeFiles/8.guest_2021_3.tessellation_terrain_gpu_dist.dir/src/8.guest/2021/3.tessellation/terrain_gpu_dist/main.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/8.guest_2021_3.tessellation_terrain_cpu_src.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\8.guest_2021_3.tessellation_terrain_cpu_src.dir\\src\\8.guest\\2021\\3.tessellation\\terrain_cpu_src\\main.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\8.guest\\2021\\3.tessellation\\terrain_cpu_src\\main.cpp",
+  "file": "D:/cg/LearnOpenGL/src/8.guest/2021/3.tessellation/terrain_cpu_src/main.cpp",
+  "output": "CMakeFiles/8.guest_2021_3.tessellation_terrain_cpu_src.dir/src/8.guest/2021/3.tessellation/terrain_cpu_src/main.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/8.guest_2021_4.dsa.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\8.guest_2021_4.dsa.dir\\src\\8.guest\\2021\\4.dsa\\hello_triangle_dsa.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\8.guest\\2021\\4.dsa\\hello_triangle_dsa.cpp",
+  "file": "D:/cg/LearnOpenGL/src/8.guest/2021/4.dsa/hello_triangle_dsa.cpp",
+  "output": "CMakeFiles/8.guest_2021_4.dsa.dir/src/8.guest/2021/4.dsa/hello_triangle_dsa.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/8.guest_2022_5.computeshader_helloworld.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\8.guest_2022_5.computeshader_helloworld.dir\\src\\8.guest\\2022\\5.computeshader_helloworld\\compute_shader_hello_world.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\8.guest\\2022\\5.computeshader_helloworld\\compute_shader_hello_world.cpp",
+  "file": "D:/cg/LearnOpenGL/src/8.guest/2022/5.computeshader_helloworld/compute_shader_hello_world.cpp",
+  "output": "CMakeFiles/8.guest_2022_5.computeshader_helloworld.dir/src/8.guest/2022/5.computeshader_helloworld/compute_shader_hello_world.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/8.guest_2022_6.physically_based_bloom.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\8.guest_2022_6.physically_based_bloom.dir\\src\\8.guest\\2022\\6.physically_based_bloom\\physically_based_bloom.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\8.guest\\2022\\6.physically_based_bloom\\physically_based_bloom.cpp",
+  "file": "D:/cg/LearnOpenGL/src/8.guest/2022/6.physically_based_bloom/physically_based_bloom.cpp",
+  "output": "CMakeFiles/8.guest_2022_6.physically_based_bloom.dir/src/8.guest/2022/6.physically_based_bloom/physically_based_bloom.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/8.guest_2022_7.area_lights_1.area_light.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\8.guest_2022_7.area_lights_1.area_light.dir\\src\\8.guest\\2022\\7.area_lights\\1.area_light\\area_lights.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\8.guest\\2022\\7.area_lights\\1.area_light\\area_lights.cpp",
+  "file": "D:/cg/LearnOpenGL/src/8.guest/2022/7.area_lights/1.area_light/area_lights.cpp",
+  "output": "CMakeFiles/8.guest_2022_7.area_lights_1.area_light.dir/src/8.guest/2022/7.area_lights/1.area_light/area_lights.cpp.obj"
+},
+{
+  "directory": "D:/cg/LearnOpenGL/build",
+  "command": "E:\\tools\\scoop\\apps\\llvm\\current\\bin\\clang++.exe -D_CRT_SECURE_NO_WARNINGS @CMakeFiles/8.guest_2022_7.area_lights_2.multiple_area_lights.dir/includes_CXX.rsp -O0 -g -Xclang -gcodeview -D_DEBUG -D_DLL -D_MT -Xclang --dependent-lib=msvcrtd -std=gnu++17 -Wno-pragma-pack -o CMakeFiles\\8.guest_2022_7.area_lights_2.multiple_area_lights.dir\\src\\8.guest\\2022\\7.area_lights\\2.multiple_area_lights\\multiple_area_lights.cpp.obj -c D:\\cg\\LearnOpenGL\\src\\8.guest\\2022\\7.area_lights\\2.multiple_area_lights\\multiple_area_lights.cpp",
+  "file": "D:/cg/LearnOpenGL/src/8.guest/2022/7.area_lights/2.multiple_area_lights/multiple_area_lights.cpp",
+  "output": "CMakeFiles/8.guest_2022_7.area_lights_2.multiple_area_lights.dir/src/8.guest/2022/7.area_lights/2.multiple_area_lights/multiple_area_lights.cpp.obj"
+}
+]

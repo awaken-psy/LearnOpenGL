@@ -1,3 +1,4 @@
+// 顶点着色器 — 内容与 5.1 相同（本练习焦点在 C++ 端多次设置 transform + 缩放）
 #version 330 core
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec2 aTexCoord;
@@ -8,6 +9,6 @@ uniform mat4 transform;
 
 void main()
 {
-	gl_Position = transform * vec4(aPos, 1.0);
-	TexCoord = vec2(aTexCoord.x, aTexCoord.y);
+    gl_Position = transform * vec4(aPos, 1.0);
+    TexCoord = vec2(aTexCoord.x, aTexCoord.y);
 }

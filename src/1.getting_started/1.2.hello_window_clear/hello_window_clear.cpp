@@ -1,3 +1,10 @@
+/**
+ * 1.2 新增内容：
+ *   glClearColor — 设置"清屏颜色"，每次清屏时把画面刷成什么颜色
+ *   glClear      — 执行清屏操作，把当前帧缓冲清空
+ * 按 ESC 键可以关闭窗口。
+ */
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -6,14 +13,11 @@
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 
-// settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 800;   // 宽
+const unsigned int SCR_HEIGHT = 600;  // 高
 
 int main()
 {
-    // glfw: initialize and configure
-    // ------------------------------
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -23,8 +27,6 @@ int main()
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    // glfw window creation
-    // --------------------
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
     if (window == NULL)
     {
@@ -35,52 +37,43 @@ int main()
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    // glad: load all OpenGL function pointers
-    // ---------------------------------------
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
-    }    
+    }
 
-    // render loop
-    // -----------
     while (!glfwWindowShouldClose(window))
     {
-        // input
-        // -----
         processInput(window);
 
-        // render
-        // ------
+        // glClearColor(R, G, B, A)：设置清屏颜色，RGBA 范围都是 0.0 ~ 1.0。
+        // 它只设置"用哪个颜色清屏"，并不真的去清屏。
+        // OpenGL 会记住这个颜色，直到你再次调用 glClearColor 改变它。
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+
+        // glClear：执行真正的清屏操作，用 glClearColor 设置的颜色把整个画面填满。
+        // GL_COLOR_BUFFER_BIT → 清除颜色缓冲（画面）。
+        // 除此之外还有 GL_DEPTH_BUFFER_BIT（深度缓冲）、GL_STENCIL_BUFFER_BIT（模板缓冲）。
+        // 把 glClearColor 和 glClear 分开，是为了"设置一次颜色，反复清屏时不用每次指定"。
+        // GL_COLOR_BUFFER_BIT 是一个标志位，告诉 glClear "我要清的是颜色缓冲这块区域"。 
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-        // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    // glfw: terminate, clearing all previously allocated GLFW resources.
-    // ------------------------------------------------------------------
     glfwTerminate();
     return 0;
 }
 
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-// ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow *window)
 {
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 }
 
-// glfw: whenever the window size changed (by OS or user resize) this callback function executes
-// ---------------------------------------------------------------------------------------------
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-    // make sure the viewport matches the new window dimensions; note that width and 
-    // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
 }

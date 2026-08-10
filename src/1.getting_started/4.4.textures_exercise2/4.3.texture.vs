@@ -1,3 +1,4 @@
+// 练习2顶点着色器 — 内容与 4.2 相同（本练习焦点在顶点数据，不在 shader）
 #version 330 core
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aColor;
@@ -8,7 +9,7 @@ out vec2 TexCoord;
 
 void main()
 {
-	gl_Position = vec4(aPos, 1.0);
-	ourColor = aColor;
-	TexCoord = vec2(aTexCoord.x, aTexCoord.y);
+    gl_Position = vec4(aPos, 1.0);
+    ourColor = aColor;
+    TexCoord = vec2(aTexCoord.x, aTexCoord.y);
 }

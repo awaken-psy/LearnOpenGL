@@ -1,3 +1,4 @@
+// 片段着色器 — 内容与 6.1 相同
 #version 330 core
 out vec4 FragColor;
 

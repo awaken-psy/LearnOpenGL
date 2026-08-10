@@ -18,14 +18,28 @@ void processInput(GLFWwindow *window);
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-// camera
-glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f,  3.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f,  0.0f);
+/**
+ * 相机 — 键盘移动 + deltaTime（帧率无关）
+ *
+ * 新增内容：
+ *   cameraPos / cameraFront / cameraUp — 用三个向量描述相机（位置/朝向/上方向）
+ *   deltaTime — 相邻两帧的时间间隔，让移动速度和帧率解耦
+ *   WASD 移动 — 前后左右平移相机
+ *
+ * 和 7.1 的区别：7.1 相机自动绕圆。这里用 WASD 手动控制相机位置。
+ *
+ * lookAt(cameraPos, cameraPos + cameraFront, cameraUp)：
+ *   相机位置 + 朝向 = 看的目标点。cameraFront 改变 → 视角改变（7.3 会用鼠标改它）。
+ */
 
-// timing
-float deltaTime = 0.0f;	// time between current frame and last frame
-float lastFrame = 0.0f;
+// ---- 相机三向量（全局，processInput 要改它们）----
+glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f,  3.0f);  // 相机位置：z=3（屏幕外朝里看）
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);  // 朝向：-Z（看向屏幕深处）
+glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f,  0.0f);  // 上方向：+Y（头顶朝天）
+
+// ---- 帧时间（让移动速度与帧率无关）----
+float deltaTime = 0.0f;  // 当前帧与上一帧的时间差（秒）
+float lastFrame = 0.0f;  // 上一帧的时间戳
 
 int main()
 {
@@ -210,8 +224,10 @@ int main()
     // -----------
     while (!glfwWindowShouldClose(window))
     {
-        // per-frame time logic
-        // --------------------
+        // ---- 计算本帧的 deltaTime ----
+        // 每帧开头记录当前时间，算出与上一帧的间隔。
+        // 帧率高 → deltaTime 小；帧率低 → deltaTime 大。
+        // 后面移动用"速度 × deltaTime"，保证不同帧率下移动速度一致。
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
@@ -234,7 +250,12 @@ int main()
         // activate shader
         ourShader.use();
 
-        // camera/view transformation
+        // ---- view 矩阵：用相机三向量构造 ----
+        // lookAt(eye, center, up)：
+        //   eye    = cameraPos（相机在哪）
+        //   center = cameraPos + cameraFront（位置 + 朝向 = 目标点）
+        //   up     = cameraUp（头顶方向）
+        // WASD 改变 cameraPos → 相机移动 → 视角跟着变。
         glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
         ourShader.setMat4("view", view);
 
@@ -276,11 +297,21 @@ void processInput(GLFWwindow *window)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
+    // cameraSpeed = 速度 × 每帧耗时。
+    // 关键：乘 deltaTime 后，无论帧率高低，每秒移动的总距离都是 2.5 个单位。
+    // 如果直接写固定值（如 0.05f），144Hz 显示器上会比 60Hz 快两倍多。
     float cameraSpeed = static_cast<float>(2.5 * deltaTime);
+
+    // W/S：沿 cameraFront 前后移动（+Front 前进，-Front 后退）
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         cameraPos += cameraSpeed * cameraFront;
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         cameraPos -= cameraSpeed * cameraFront;
+
+    // A/D：沿 Right 向量左右移动。Right = cameraFront × cameraUp（叉乘）。
+    //   叉乘结果垂直于 Front 和 Up，正好是相机的"右方"。
+    //   归一化保证移动速度不随视角变化（叉乘结果长度会变）。
+    //   -Right = 左，+Right = 右。
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
         cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)

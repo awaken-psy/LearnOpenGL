@@ -1,39 +1,53 @@
+/**
+ * 练习3：两个三角形用不同颜色（两个着色器程序）
+ *
+ * 和练习2 的区别：练习2 两个三角形用的是同一套 shader，所以颜色一样。
+ * 这里每个三角形绑定不同的 shader program——同一个顶点着色器 + 两个不同的片段着色器。
+ *
+ * 新知识：
+ *   一个顶点着色器可以被多个程序共享（glAttachShader 到不同 program 就行）
+ *   每画一个物体前 glUseProgram 切换不同的着色器程序
+ * 按 ESC 键可以关闭窗口。
+ */
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-
 #include <iostream>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 
-// settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
+
+// 顶点着色器（两个三角形共用这一个）
 const char *vertexShaderSource = "#version 330 core\n"
     "layout (location = 0) in vec3 aPos;\n"
     "void main()\n"
     "{\n"
     "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
     "}\0";
+
+// 左三角形：橙色
 const char *fragmentShader1Source = "#version 330 core\n"
     "out vec4 FragColor;\n"
     "void main()\n"
     "{\n"
-    "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+    "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"   // 橙色
     "}\n\0";
+
+// 右三角形：黄色
 const char *fragmentShader2Source = "#version 330 core\n"
     "out vec4 FragColor;\n"
     "void main()\n"
     "{\n"
-    "   FragColor = vec4(1.0f, 1.0f, 0.0f, 1.0f);\n"
+    "   FragColor = vec4(1.0f, 1.0f, 0.0f, 1.0f);\n"   // 黄色
     "}\n\0";
 
 
 int main()
 {
-    // glfw: initialize and configure
-    // ------------------------------
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -43,8 +57,6 @@ int main()
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    // glfw window creation
-    // --------------------
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
     if (window == NULL)
     {
@@ -55,8 +67,6 @@ int main()
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-    // glad: load all OpenGL function pointers
-    // ---------------------------------------
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cout << "Failed to initialize GLAD" << std::endl;
@@ -64,122 +74,114 @@ int main()
     }
 
 
-    // build and compile our shader program
-    // ------------------------------------
-    // we skipped compile log checks this time for readability (if you do encounter issues, add the compile-checks! see previous code samples)
+    // ---- 编译着色器 ----
     unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    unsigned int fragmentShaderOrange = glCreateShader(GL_FRAGMENT_SHADER); // the first fragment shader that outputs the color orange
-    unsigned int fragmentShaderYellow = glCreateShader(GL_FRAGMENT_SHADER); // the second fragment shader that outputs the color yellow
-    unsigned int shaderProgramOrange = glCreateProgram();
-    unsigned int shaderProgramYellow = glCreateProgram(); // the second shader program
+    unsigned int fragmentShaderOrange = glCreateShader(GL_FRAGMENT_SHADER);
+    unsigned int fragmentShaderYellow  = glCreateShader(GL_FRAGMENT_SHADER);
+
     glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
     glCompileShader(vertexShader);
+
     glShaderSource(fragmentShaderOrange, 1, &fragmentShader1Source, NULL);
     glCompileShader(fragmentShaderOrange);
+
     glShaderSource(fragmentShaderYellow, 1, &fragmentShader2Source, NULL);
     glCompileShader(fragmentShaderYellow);
-    // link the first program object
+
+    // ---- 链接两个程序（共享同一个顶点着色器）----
+    //
+    // glAttachShader 只把着色器"复制引用"到程序里，不会消费掉着色器对象。
+    // 所以同一个 vertexShader 可以同时 attach 到多个 program，
+    // 链接后每个 program 内部都有 vertexShader 的独立副本。
+    //
+    // 类比：买了两盒乐高（两个 program），但用了同一份说明书（同一个 vertex shader）。
+    unsigned int shaderProgramOrange = glCreateProgram();
+    unsigned int shaderProgramYellow  = glCreateProgram();
+
     glAttachShader(shaderProgramOrange, vertexShader);
     glAttachShader(shaderProgramOrange, fragmentShaderOrange);
     glLinkProgram(shaderProgramOrange);
-    // then link the second program object using a different fragment shader (but same vertex shader)
-    // this is perfectly allowed since the inputs and outputs of both the vertex and fragment shaders are equally matched.
+
     glAttachShader(shaderProgramYellow, vertexShader);
     glAttachShader(shaderProgramYellow, fragmentShaderYellow);
     glLinkProgram(shaderProgramYellow);
 
-    // set up vertex data (and buffer(s)) and configure vertex attributes
-    // ------------------------------------------------------------------
+    // 现在着色器对象可以删了——两个 program 里各自有独立副本。
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShaderOrange);
+    glDeleteShader(fragmentShaderYellow);
+
+
+    // ---- 顶点数据（同练习2：两个三角形各用各的 VAO + VBO）----
     float firstTriangle[] = {
-        -0.9f, -0.5f, 0.0f,  // left 
-        -0.0f, -0.5f, 0.0f,  // right
-        -0.45f, 0.5f, 0.0f,  // top 
+        -0.9f, -0.5f, 0.0f,
+        -0.0f, -0.5f, 0.0f,
+        -0.45f, 0.5f, 0.0f,
     };
     float secondTriangle[] = {
-        0.0f, -0.5f, 0.0f,  // left
-        0.9f, -0.5f, 0.0f,  // right
-        0.45f, 0.5f, 0.0f   // top 
+         0.0f, -0.5f, 0.0f,
+         0.9f, -0.5f, 0.0f,
+         0.45f, 0.5f, 0.0f,
     };
+
     unsigned int VBOs[2], VAOs[2];
-    glGenVertexArrays(2, VAOs); // we can also generate multiple VAOs or buffers at the same time
+    glGenVertexArrays(2, VAOs);
     glGenBuffers(2, VBOs);
-    // first triangle setup
-    // --------------------
+
     glBindVertexArray(VAOs[0]);
     glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(firstTriangle), firstTriangle, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);	// Vertex attributes stay the same
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    // glBindVertexArray(0); // no need to unbind at all as we directly bind a different VAO the next few lines
-    // second triangle setup
-    // ---------------------
-    glBindVertexArray(VAOs[1]);	// note that we bind to a different VAO now
-    glBindBuffer(GL_ARRAY_BUFFER, VBOs[1]);	// and a different VBO
+
+    glBindVertexArray(VAOs[1]);
+    glBindBuffer(GL_ARRAY_BUFFER, VBOs[1]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(secondTriangle), secondTriangle, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0); // because the vertex data is tightly packed we can also specify 0 as the vertex attribute's stride to let OpenGL figure it out
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    // glBindVertexArray(0); // not really necessary as well, but beware of calls that could affect VAOs while this one is bound (like binding element buffer objects, or enabling/disabling vertex attributes)
 
 
-    // uncomment this call to draw in wireframe polygons.
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-    // render loop
-    // -----------
     while (!glfwWindowShouldClose(window))
     {
-        // input
-        // -----
         processInput(window);
 
-        // render
-        // ------
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // now when we draw the triangle we first use the vertex and orange fragment shader from the first program
+        // 左三角形 — 橙色程序
         glUseProgram(shaderProgramOrange);
-        // draw the first triangle using the data from our first VAO
         glBindVertexArray(VAOs[0]);
-        glDrawArrays(GL_TRIANGLES, 0, 3);	// this call should output an orange triangle
-        // then we draw the second triangle using the data from the second VAO
-        // when we draw the second triangle we want to use a different shader program so we switch to the shader program with our yellow fragment shader.
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        // 右三角形 — 黄色程序
+        // glUseProgram 切换着色器程序，后续的 draw 就用新程序的 shader。
+        // 这是核心模式的标准做法：不同颜色 = 不同 shader program。
+        // （后面讲 uniform 变量后，同色不同值用 uniform，而不用多 program）
         glUseProgram(shaderProgramYellow);
         glBindVertexArray(VAOs[1]);
-        glDrawArrays(GL_TRIANGLES, 0, 3);	// this call should output a yellow triangle
+        glDrawArrays(GL_TRIANGLES, 0, 3);
 
-        // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-        // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    // optional: de-allocate all resources once they've outlived their purpose:
-    // ------------------------------------------------------------------------
     glDeleteVertexArrays(2, VAOs);
     glDeleteBuffers(2, VBOs);
     glDeleteProgram(shaderProgramOrange);
     glDeleteProgram(shaderProgramYellow);
 
-    // glfw: terminate, clearing all previously allocated GLFW resources.
-    // ------------------------------------------------------------------
     glfwTerminate();
     return 0;
 }
 
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-// ---------------------------------------------------------------------------------------------------------
+
 void processInput(GLFWwindow *window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 }
 
-// glfw: whenever the window size changed (by OS or user resize) this callback function executes
-// ---------------------------------------------------------------------------------------------
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-    // make sure the viewport matches the new window dimensions; note that width and 
-    // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
 }

@@ -1,0 +1,33 @@
+{
+    "configurations": [
+        {
+            "name": "LearnOpenGL",
+            "compilerPath": "E:/tools/scoop/apps/llvm/current/bin/clang++.exe",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "windows-clang-x64",
+            "includePath": [
+                "${workspaceFolder}/includes",
+                "${workspaceFolder}/includes/GL",
+                "${workspaceFolder}/includes/GLFW",
+                "${workspaceFolder}/includes/KHR",
+                "${workspaceFolder}/includes/assimp",
+                "${workspaceFolder}/includes/freetype",
+                "${workspaceFolder}/includes/learnopengl",
+                "${workspaceFolder}/build/configuration",
+                "E:/tools/scoop/apps/glm/current/include",
+                "E:/tools/scoop/apps/llvm/22.1.1/lib/clang/22/include",
+                "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.44.35207/include",
+                "C:/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0/ucrt",
+                "C:/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0/shared",
+                "C:/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0/um",
+                "C:/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0/winrt",
+                "C:/Program Files (x86)/Windows Kits/10/Include/10.0.26100.0/cppwinrt"
+            ],
+            "defines": [
+                "_CRT_SECURE_NO_WARNINGS"
+            ]
+        }
+    ],
+    "version": 4
+}

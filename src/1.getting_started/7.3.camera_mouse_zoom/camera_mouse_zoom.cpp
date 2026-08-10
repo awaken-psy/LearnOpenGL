@@ -20,20 +20,37 @@ void processInput(GLFWwindow *window);
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-// camera
+/**
+ * 相机 — 鼠标视角（欧拉角）+ 滚轮缩放
+ *
+ * 新增内容：
+ *   欧拉角 yaw/pitch      — 用两个角度描述相机朝向（左右转头/上下点头）
+ *   鼠标回调 mouse_callback — 鼠标移动 → 改 yaw/pitch → 重算 cameraFront
+ *   滚轮回调 scroll_callback — 滚轮 → 改 fov → 放大/缩小
+ *   GLFW_CURSOR_DISABLED   — 隐藏并锁定鼠标，实现 FPS 式自由视角
+ *
+ * 和 7.2 的区别：7.2 只能平移（WASD），视角固定。这里鼠标转视角，滚轮缩放。
+ *
+ * 欧拉角 → 方向向量 的换算在 mouse_callback 里（三角函数），
+ * 7.4 的 Camera 类会把这段封装进 updateCameraVectors。
+ */
+
+// ---- 相机三向量（同 7.2）----
 glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f, 0.0f);
 
-bool firstMouse = true;
-float yaw   = -90.0f;	// yaw is initialized to -90.0 degrees since a yaw of 0.0 results in a direction vector pointing to the right so we initially rotate a bit to the left.
-float pitch =  0.0f;
-float lastX =  800.0f / 2.0;
-float lastY =  600.0 / 2.0;
-float fov   =  45.0f;
+// ---- 鼠标视角相关状态 ----
+bool firstMouse = true;   // 第一次鼠标事件的标志（用来初始化 lastX/lastY，避免开局跳变）
+float yaw   = -90.0f;     // 偏航角（左右）。初始 -90°：让 cameraFront 初始朝 -Z（看进屏幕）
+                          //   0° 时 front 朝 +X（右），所以要偏 -90° 转到朝 -Z
+float pitch =  0.0f;      // 俯仰角（上下）。0° = 水平。范围限制在 [-89°, 89°]
+float lastX =  800.0f / 2.0;  // 上一帧鼠标 X（初始 = 窗口中心）
+float lastY =  600.0 / 2.0;  // 上一帧鼠标 Y
+float fov   =  45.0f;     // 视野角度，滚轮调节。小=放大（望远镜），大=广角
 
-// timing
-float deltaTime = 0.0f;	// time between current frame and last frame
+// timing（同 7.2）
+float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
 int main()
@@ -60,10 +77,13 @@ int main()
     }
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    
+    // 注册鼠标移动和滚轮回调。鼠标一动 GLFW 就调 mouse_callback，滚轮一滚就调 scroll_callback。
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
-    // tell GLFW to capture our mouse
+    // 隐藏鼠标光标并"锁定"在窗口里（鼠标不会跑到窗口外）。
+    // 这是 FPS 自由视角的标准设置：鼠标可以无限移动，用来转视角。
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // glad: load all OpenGL function pointers
@@ -243,7 +263,8 @@ int main()
         // activate shader
         ourShader.use();
 
-        // pass projection matrix to shader (note that in this case it could change every frame)
+        // projection 用 fov（不再是硬编码 45°）。滚轮改 fov → 每帧重设 projection。
+        // 这就是为什么 7.2 的 projection 能放循环外，而这里必须在循环内每帧更新。
         glm::mat4 projection = glm::perspective(glm::radians(fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         ourShader.setMat4("projection", projection);
 
@@ -309,13 +330,14 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
-// glfw: whenever the mouse moves, this callback is called
-// -------------------------------------------------------
+// 鼠标移动回调。GLFW 传入当前鼠标坐标 (xpos, ypos)。
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
     float xpos = static_cast<float>(xposIn);
     float ypos = static_cast<float>(yposIn);
 
+    // 第一次事件：把 lastX/lastY 初始化为当前位置。
+    // 否则程序刚启动时 lastX=400，鼠标在 (100,100)，第一帧会产生巨大偏移 → 视角猛跳。
     if (firstMouse)
     {
         lastX = xpos;
@@ -323,38 +345,46 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
         firstMouse = false;
     }
 
+    // 计算相对上一帧的位移（偏移量）。
     float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+    // Y 要反过来：屏幕坐标 Y 向下增大，而 OpenGL 世界 Y 向上。
+    // 反向后：鼠标上移 → yoffset 正 → pitch 增大 → 抬头（符合直觉）。
+    float yoffset = lastY - ypos;
     lastX = xpos;
     lastY = ypos;
 
-    float sensitivity = 0.1f; // change this value to your liking
+    // 灵敏度：把原始像素位移缩放成合理的角度变化。值越大鼠标越灵敏。
+    float sensitivity = 0.1f;
     xoffset *= sensitivity;
     yoffset *= sensitivity;
 
-    yaw += xoffset;
-    pitch += yoffset;
+    // 偏移量累加到欧拉角。
+    yaw   += xoffset;   // 鼠标左右 → yaw（左右转头）
+    pitch += yoffset;   // 鼠标上下 → pitch（上下点头）
 
-    // make sure that when pitch is out of bounds, screen doesn't get flipped
+    // 限制 pitch 在 [-89°, 89°]。超过 90° 会导致方向向量翻转（看穿头顶到背后），画面翻转。
     if (pitch > 89.0f)
         pitch = 89.0f;
     if (pitch < -89.0f)
         pitch = -89.0f;
 
+    // ---- 欧拉角 → 方向向量（球坐标三角换算）----
+    // 这是相机视角的核心公式：用 yaw/pitch 算出 cameraFront。
+    //   front.x = cos(yaw)*cos(pitch)
+    //   front.y = sin(pitch)
+    //   front.z = sin(yaw)*cos(pitch)
+    // 直觉：yaw 决定 XZ 平面的朝向，pitch 决定仰角。
     glm::vec3 front;
     front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
     front.y = sin(glm::radians(pitch));
     front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-    cameraFront = glm::normalize(front);
+    cameraFront = glm::normalize(front);  // 归一化成单位向量
 }
 
-// glfw: whenever the mouse scroll wheel scrolls, this callback is called
-// ----------------------------------------------------------------------
+// 滚轮回调。yoffset 通常是 +1（上滚）或 -1（下滚）。
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-    fov -= (float)yoffset;
-    if (fov < 1.0f)
-        fov = 1.0f;
-    if (fov > 45.0f)
-        fov = 45.0f;
+    fov -= (float)yoffset;     // 上滚 → fov 减小 → 放大（望远镜）
+    if (fov < 1.0f)  fov = 1.0f;    // 下限：1°，太小透视畸变严重
+    if (fov > 45.0f) fov = 45.0f;   // 上限：45°，恢复默认
 }
