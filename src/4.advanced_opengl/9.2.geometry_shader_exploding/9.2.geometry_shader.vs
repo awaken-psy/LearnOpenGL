@@ -1,3 +1,5 @@
+// 顶点着色器：爆炸效果
+// 标准的 MVP 变换，将纹理坐标通过接口块传递给几何着色器。
 #version 330 core
 layout (location = 0) in vec3 aPos;
 layout (location = 2) in vec2 aTexCoords;

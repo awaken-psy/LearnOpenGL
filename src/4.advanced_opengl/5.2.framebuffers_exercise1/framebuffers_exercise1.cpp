@@ -1,3 +1,23 @@
+/**
+ * 帧缓冲练习1 — 镜面反射效果
+ *
+ * 本练习在 5.1 帧缓冲的基础上实现一面"镜子"：
+ *   将场景以反向视角渲染到 FBO 纹理，再贴到场景中的一面镜子上。
+ *
+ * ⭐ 核心思路：
+ *   1. 第一趟：将摄像机 Yaw 旋转 180°，渲染场景到 FBO（得到镜像画面）
+ *   2. 第二趟：恢复原始摄像机方向，正常渲染场景到默认帧缓冲
+ *   3. 最后：将 FBO 纹理贴到一个小四边形（镜子）上，叠加在场景之上
+ *
+ * 与 5.1 的区别：
+ *   - 屏幕四边形缩小为屏幕右上角的小矩形（不再是全屏）
+ *   - 渲染流程从两趟变为三趟（镜像渲染 + 正常渲染 + 绘制镜子）
+ *   - 通过临时修改 Camera 的 Yaw 来实现"反向视角"，渲染后立即恢复
+ *
+ * ⭐ 技巧：camera.ProcessMouseMovement(0, 0, false) 用于强制更新摄像机向量，
+ *   传 false 是为了暂时禁用 pitch 约束，确保反向视角不被限制
+ */
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
@@ -136,6 +156,8 @@ int main()
         -5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
          5.0f, -0.5f, -5.0f,  2.0f, 2.0f
     };
+    // ⭐ 与 5.1 不同：镜子四边形缩小到屏幕右上角，不再是全屏
+    //   坐标范围 [-0.3, 0.3] x [0.7, 1.0]，只占屏幕的一小块区域
     float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates. NOTE that this plane is now much smaller and at the top of the screen
         // positions   // texCoords
         -0.3f,  1.0f,  0.0f, 1.0f,
@@ -193,6 +215,7 @@ int main()
     screenShader.use();
     screenShader.setInt("screenTexture", 0);
 
+    // ---- 帧缓冲配置（与 5.1 相同）----
     // framebuffer configuration
     // -------------------------
     unsigned int framebuffer;
@@ -235,6 +258,7 @@ int main()
         processInput(window);
 
 
+        // ---- 第一趟：镜像渲染 — 将摄像机反转 180° 后渲染场景到 FBO ----
         // first render pass: mirror texture.
         // bind to framebuffer and draw to color texture as we normally 
         // would, but with the view camera reversed.
@@ -249,6 +273,8 @@ int main()
 
         shader.use();
         glm::mat4 model = glm::mat4(1.0f);
+        // ⭐ 镜像技巧：临时将摄像机 Yaw +180°，让视角"向后看"
+        //   渲染到 FBO 后立即恢复，这样 FBO 纹理中存储的就是"镜子中看到的画面"
         camera.Yaw   += 180.0f; // rotate the camera's yaw 180 degrees around
         camera.ProcessMouseMovement(0, 0, false); // call this to make sure it updates its camera vectors, note that we disable pitch constrains for this specific case (otherwise we can't reverse camera's pitch values)
         glm::mat4 view = camera.GetViewMatrix();
@@ -275,6 +301,7 @@ int main()
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glBindVertexArray(0);
 
+        // ---- 第二趟：正常渲染 — 恢复原始视角，渲染场景到默认帧缓冲 ----
         // second render pass: draw as normal
         // ----------------------------------
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -304,12 +331,15 @@ int main()
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glBindVertexArray(0);
 
+        // ---- 第三趟：绘制镜子 — 将 FBO 纹理贴到小四边形上 ----
         // now draw the mirror quad with screen texture
         // --------------------------------------------
+        // ⭐ 禁用深度测试：镜子四边形使用 NDC 坐标，2D 绘制不需要深度比较
         glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
 
         screenShader.use();
         glBindVertexArray(quadVAO);
+        // ⭐ 将第一趟渲染的镜像 FBO 纹理作为镜子的"画面"
         glBindTexture(GL_TEXTURE_2D, textureColorbuffer);	// use the color attachment texture as the texture of the quad plane
         glDrawArrays(GL_TRIANGLES, 0, 6);
 

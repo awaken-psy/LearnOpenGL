@@ -1,3 +1,25 @@
+/**
+ * 11.2 离屏 MSAA 抗锯齿（Offscreen Multisampling）
+ * =================================================
+ * 本演示将 MSAA 与自定义帧缓冲结合，实现可控的抗锯齿 + 后处理管线。
+ *
+ * 关键概念：
+ * - 【多采样帧缓冲对象】（Multisample FBO）：颜色附件使用 GL_TEXTURE_2D_MULTISAMPLE，
+ *   深度/模板附件使用 glRenderbufferStorageMultisample。
+ * - 【Blit 解析】：多采样缓冲无法直接被 shader 采样，必须通过 glBlitFramebuffer
+ *   将其"解析"（resolve）为普通单采样纹理。
+ * - 【后处理管线】：3 步——① 渲染到多采样 FBO → ② blit 到中间 FBO → ③ 绘制屏幕四边形做后处理
+ *
+ * 与 11.1 的区别：
+ * - 11.1：直接渲染到窗口，MSAA 由驱动自动解析，无法做后处理
+ * - 11.2：渲染到自定义多采样 FBO，手动 blit 解析后可以接后处理（本例为灰度效果）
+ *
+ * 渲染流程（每帧）：
+ * 1. 绑定多采样 FBO，正常渲染场景（立方体在此阶段完成 MSAA）
+ * 2. glBlitFramebuffer 将多采样 FBO 解析到中间 FBO 的普通纹理
+ * 3. 绑定默认 FBO（窗口），用屏幕四边形采样中间纹理并应用后处理
+ */
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
@@ -125,6 +147,8 @@ int main()
         -0.5f,  0.5f,  0.5f,
         -0.5f,  0.5f, -0.5f
     };
+    // ---- 屏幕四边形顶点数据 ----
+    // 使用 NDC 坐标铺满整个屏幕，用于后处理阶段绘制最终画面
     float quadVertices[] = {   // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
         // positions   // texCoords
         -1.0f,  1.0f,  0.0f, 1.0f,
@@ -157,19 +181,21 @@ int main()
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 
 
-    // configure MSAA framebuffer
-    // --------------------------
+    // ---- 配置多采样帧缓冲对象（MSAA FBO）----
+    // ⭐ 这是本演示的核心：场景渲染到此 FBO，启用 4x 多重采样
     unsigned int framebuffer;
     glGenFramebuffers(1, &framebuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-    // create a multisampled color attachment texture
+    // 创建多采样颜色附件纹理
+    // ⭐ 使用 GL_TEXTURE_2D_MULTISAMPLE（而非 GL_TEXTURE_2D），通过 glTexImage2DMultisample 指定采样数
     unsigned int textureColorBufferMultiSampled;
     glGenTextures(1, &textureColorBufferMultiSampled);
     glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureColorBufferMultiSampled);
     glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB, SCR_WIDTH, SCR_HEIGHT, GL_TRUE);
     glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, textureColorBufferMultiSampled, 0);
-    // create a (also multisampled) renderbuffer object for depth and stencil attachments
+    // 创建多采样渲染缓冲对象（深度+模板）
+    // ⭐ 深度模板附件也必须是多采样的，否则与颜色附件的采样数不匹配
     unsigned int rbo;
     glGenRenderbuffers(1, &rbo);
     glBindRenderbuffer(GL_RENDERBUFFER, rbo);
@@ -181,7 +207,9 @@ int main()
         cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    // configure second post-processing framebuffer
+    // ---- 配置中间帧缓冲对象（用于 blit 解析后的结果）----
+    // ⭐ 多采样纹理不能直接被 shader 采样，必须先 blit 到普通纹理
+    // 中间 FBO 使用普通的 GL_TEXTURE_2D，可以被后处理 shader 采样
     unsigned int intermediateFBO;
     glGenFramebuffers(1, &intermediateFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, intermediateFBO);
@@ -222,7 +250,9 @@ int main()
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // 1. draw scene as normal in multisampled buffers
+        // ---- 第 1 步：将场景渲染到多采样帧缓冲 ----
+        // 绑定多采样 FBO，正常渲染场景
+        // MSAA 在此阶段自动生效：光栅化时对边缘像素进行多重采样
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -238,16 +268,20 @@ int main()
         glBindVertexArray(cubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
-        // 2. now blit multisampled buffer(s) to normal colorbuffer of intermediate FBO. Image is stored in screenTexture
+        // ---- 第 2 步：Blit 多采样缓冲到中间 FBO ----
+        // ⭐ glBlitFramebuffer 将多采样 FBO 的内容"解析"（resolve）为单采样纹理
+        // 读取源 = 多采样 FBO，写入目标 = 中间 FBO（普通纹理）
+        // 解析过程会对每个像素的多个子样本取平均，生成抗锯齿后的单采样图像
         glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, intermediateFBO);
         glBlitFramebuffer(0, 0, SCR_WIDTH, SCR_HEIGHT, 0, 0, SCR_WIDTH, SCR_HEIGHT, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
-        // 3. now render quad with scene's visuals as its texture image
+        // ---- 第 3 步：渲染屏幕四边形（后处理）----
+        // 绑定默认帧缓冲（窗口），用屏幕四边形采样中间纹理并应用后处理效果
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_DEPTH_TEST); // 屏幕四边形不需要深度测试
 
         // draw Screen quad
         screenShader.use();

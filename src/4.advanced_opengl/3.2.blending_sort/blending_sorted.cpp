@@ -1,3 +1,23 @@
+/**
+ * 混合（Blending）—— 第二阶段：Alpha 混合与深度排序
+ *
+ * 本演示实现真正的半透明效果：通过启用【混合】(GL_BLEND) 并按深度从远到近排序
+ * 透明物体，确保半透明窗口的正确叠加渲染。
+ *
+ * 关键概念：
+ * - 【Alpha 混合】：glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+ *   最终颜色 = 源颜色 × alpha + 目标颜色 × (1 - alpha)
+ *   alpha=0 完全透明，alpha=1 完全不透明，中间值为半透明
+ * - 【深度排序】：混合需要从远到近渲染透明物体，因为混合操作依赖于
+ *   后绘制的片段叠加在先绘制的片段之上。如果不排序，远处的透明物
+ *   可能错误地覆盖近处的，导致半透明效果不正确。
+ * - ⭐ 为什么不透明物体不需要排序？因为深度测试保证了近处遮挡远处。
+ *   但透明物体不写入深度缓冲（否则会遮挡其后方物体），所以必须手动排序。
+ *
+ * 与 3.1 的区别：
+ * - 3.1 用 discard 丢弃透明像素，不需要混合，不支持半透明
+ * - 3.2 启用 GL_BLEND 进行真正的 alpha 混合，需要排序才能正确渲染
+ */
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
@@ -71,9 +91,12 @@ int main()
         return -1;
     }
 
-    // configure global opengl state
-    // -----------------------------
+    // ---- 全局 OpenGL 状态配置 ----
     glEnable(GL_DEPTH_TEST);
+    // ⭐ 启用混合并设置混合函数
+    // GL_SRC_ALPHA：源颜色（当前片段）乘以 alpha 值
+    // GL_ONE_MINUS_SRC_ALPHA：目标颜色（已存在的颜色）乘以 (1 - alpha)
+    // 这是最常用的 alpha 混合公式：out = src*alpha + dst*(1-alpha)
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -186,9 +209,10 @@ int main()
     // -------------
     unsigned int cubeTexture = loadTexture(FileSystem::getPath("resources/textures/marble.jpg").c_str());
     unsigned int floorTexture = loadTexture(FileSystem::getPath("resources/textures/metal.png").c_str());
+    // ⭐ 窗口纹理包含半透明区域（玻璃效果），需要 alpha 混合
     unsigned int transparentTexture = loadTexture(FileSystem::getPath("resources/textures/window.png").c_str());
 
-    // transparent window locations
+    // ---- 透明窗口位置 ----
     // --------------------------------
     vector<glm::vec3> windows
     {
@@ -218,7 +242,10 @@ int main()
         // -----
         processInput(window);
 
-        // sort the transparent windows before rendering
+        // ---- 按距离对透明窗口排序 ----
+        // ⭐ 关键步骤：计算每个窗口到摄像机的距离，用 std::map 自动排序
+        // std::map 按键值（距离）从小到大排列，恰好满足我们的需求
+        // 因为 map 不允许重复键，如果两个窗口距离相同会有问题（实际中很少见）
         // ---------------------------------------------
         std::map<float, glm::vec3> sorted;
         for (unsigned int i = 0; i < windows.size(); i++)
@@ -256,6 +283,11 @@ int main()
         model = glm::mat4(1.0f);
         shader.setMat4("model", model);
         glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        // ---- 渲染透明窗口（从远到近）----
+        // ⭐ 使用反向迭代器 rbegin()/rend() 从最远（距离最大）到最近遍历
+        // 必须从远到近渲染：远处先画，近处后画并叠加在远处之上
+        // 这样混合的结果才是正确的——近处窗口半透明地遮盖远处窗口
         // windows (from furthest to nearest)
         glBindVertexArray(transparentVAO);
         glBindTexture(GL_TEXTURE_2D, transparentTexture);
@@ -363,6 +395,7 @@ unsigned int loadTexture(char const * path)
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
 
+        // ⭐ 对 RGBA 纹理使用 GL_CLAMP_TO_EDGE，防止半透明边框
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT); // for this tutorial: use GL_CLAMP_TO_EDGE to prevent semi-transparent borders. Due to interpolation it takes texels from next repeat 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);

@@ -1,3 +1,23 @@
+/**
+ * 立方体贴图与天空盒（Skybox）
+ *
+ * 本 demo 演示【立方体贴图】（Cubemap）的加载与天空盒渲染：
+ *   1. 将 6 张面纹理加载为一个 GL_TEXTURE_CUBE_MAP
+ *   2. 渲染一个带 2D 纹理的普通立方体
+ *   3. 最后渲染天空盒：一个包围场景的大立方体，内部贴有 6 面环境纹理
+ *
+ * ⭐ 天空盒渲染的关键技巧：
+ *   - 天空盒顶点着色器中使用 pos.xyww 技巧，让 z=w，使深度值始终为 1.0（最远）
+ *   - 渲染天空盒前将深度函数改为 GL_LEQUAL，使得 z=1.0 的天空盒通过深度测试
+ *   - 渲染完天空盒后恢复 GL_LESS
+ *   - 视图矩阵去掉平移分量（只用旋转），让天空盒"无限远"——无论怎么移动摄像机，天空盒看起来距离不变
+ *
+ * 与之前的 demo 相比：
+ *   - 新增 loadCubemap() 函数加载 6 面纹理
+ *   - 新增天空盒 VAO/着色器
+ *   - 渲染顺序：先场景后天空盒（因为 GL_LEQUAL 技巧）
+ */
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
@@ -78,6 +98,7 @@ int main()
 
     // build and compile shaders
     // -------------------------
+    // ⭐ 两套着色器：shader 渲染普通 2D 纹理立方体，skyboxShader 渲染天空盒
     Shader shader("6.1.cubemaps.vs", "6.1.cubemaps.fs");
     Shader skyboxShader("6.1.skybox.vs", "6.1.skybox.fs");
 
@@ -127,6 +148,8 @@ int main()
         -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
         -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
     };
+    // ⭐ 天空盒立方体顶点：只有位置(3)，无纹理坐标
+    //   天空盒的方向由顶点位置决定（作为采样立方体贴图的方向向量）
     float skyboxVertices[] = {
         // positions          
         -1.0f,  1.0f, -1.0f,
@@ -184,6 +207,7 @@ int main()
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     // skybox VAO
+    // ⭐ 天空盒只需位置属性，stride = 3*sizeof(float)
     unsigned int skyboxVAO, skyboxVBO;
     glGenVertexArrays(1, &skyboxVAO);
     glGenBuffers(1, &skyboxVBO);
@@ -197,6 +221,8 @@ int main()
     // -------------
     unsigned int cubeTexture = loadTexture(FileSystem::getPath("resources/textures/container.jpg").c_str());
 
+    // ⭐ 立方体贴图的 6 个面，顺序必须为：右、左、上、下、前、后
+    //   这个顺序对应 GL_TEXTURE_CUBE_MAP_POSITIVE_X 到 GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
     vector<std::string> faces
     {
         FileSystem::getPath("resources/textures/skybox/right.jpg"),
@@ -235,6 +261,7 @@ int main()
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // ---- 渲染普通场景 ----
         // draw scene as normal
         shader.use();
         glm::mat4 model = glm::mat4(1.0f);
@@ -250,9 +277,16 @@ int main()
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glBindVertexArray(0);
 
+        // ---- 渲染天空盒（最后渲染）----
+        // ⭐ 三步技巧：
+        //   1. glDepthFunc(GL_LEQUAL)：允许 z=1.0 的片元通过深度测试
+        //   2. 去掉视图矩阵的平移分量（只保留旋转），让天空盒看起来"无限远"
+        //   3. 渲染后恢复 GL_LESS
         // draw skybox as last
         glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
         skyboxShader.use();
+        // ⭐ mat4(mat3(...)) 提取视图矩阵的 3x3 旋转部分，丢弃平移，再转回 4x4
+        //   这样天空盒不会随摄像机移动而平移，始终"包裹"在场景周围
         view = glm::mat4(glm::mat3(camera.GetViewMatrix())); // remove translation from the view matrix
         skyboxShader.setMat4("view", view);
         skyboxShader.setMat4("projection", projection);
@@ -375,6 +409,10 @@ unsigned int loadTexture(char const * path)
     return textureID;
 }
 
+// ---- 加载立方体贴图 ----
+// ⭐ 立方体贴图由 6 张 2D 纹理组成，分别对应 6 个面
+//   使用 GL_TEXTURE_CUBE_MAP_POSITIVE_X + i 枚举依次指定每个面的目标
+//   环绕模式设为 GL_CLAMP_TO_EDGE 防止面之间出现接缝
 // loads a cubemap texture from 6 individual texture faces
 // order:
 // +X (right)
@@ -396,6 +434,7 @@ unsigned int loadCubemap(vector<std::string> faces)
         unsigned char *data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
         if (data)
         {
+            // ⭐ GL_TEXTURE_CUBE_MAP_POSITIVE_X + i 依次对应右、左、上、下、前、后
             glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
             stbi_image_free(data);
         }
@@ -407,6 +446,7 @@ unsigned int loadCubemap(vector<std::string> faces)
     }
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // ⭐ 三维环绕：S/U, T/V, R/W 分别对应立方体贴图的三个轴方向
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);

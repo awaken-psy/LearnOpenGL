@@ -1,3 +1,22 @@
+/**
+ * 帧缓冲（Framebuffer）— 渲染到纹理 + 后处理
+ *
+ * 本 demo 演示了【帧缓冲对象】（FBO）的核心用法：
+ *   1. 创建自定义 FBO，将场景先渲染到一张【纹理附件】上
+ *   2. 切回默认帧缓冲，将纹理贴到一个铺满屏幕的四边形上
+ *   3. 在屏幕着色器中对纹理进行后处理（本例为直接输出，后续练习会加滤镜效果）
+ *
+ * ⭐ 核心概念：FBO 本身不存储数据，它只是一个"容器"，需要挂载：
+ *   - 【颜色附件】：纹理（可被采样）或渲染缓冲对象
+ *   - 【深度/模板附件】：渲染缓冲对象（Renderbuffer Object, RBO）
+ *     RBO 不可被着色器采样，但性能优于纹理，适合不需要读取的深度/模板数据
+ *
+ * 与之前的 demo 相比：
+ *   - 新增了第二套着色器（screenShader）专门绘制屏幕四边形
+ *   - 渲染流程变为两趟：第一趟渲染到 FBO，第二趟用 FBO 纹理绘制全屏四边形
+ *   - 屏幕四边形使用【标准化设备坐标】（NDC），z=0，绕过投影矩阵直接铺满屏幕
+ */
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
@@ -77,6 +96,7 @@ int main()
 
     // build and compile shaders
     // -------------------------
+    // ⭐ 两套着色器：shader 渲染 3D 场景到 FBO，screenShader 将 FBO 纹理绘制到屏幕四边形
     Shader shader("5.1.framebuffers.vs", "5.1.framebuffers.fs");
     Shader screenShader("5.1.framebuffers_screen.vs", "5.1.framebuffers_screen.fs");
 
@@ -136,6 +156,8 @@ int main()
         -5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
          5.0f, -0.5f, -5.0f,  2.0f, 2.0f
     };
+    // ⭐ 屏幕四边形顶点：坐标范围 [-1,1] 即 NDC，直接铺满整个屏幕
+    //   注意不需要 MVP 矩阵，因为已经是裁剪空间坐标
     float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
         // positions   // texCoords
         -1.0f,  1.0f,  0.0f, 1.0f,
@@ -169,6 +191,7 @@ int main()
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     // screen quad VAO
+    // ⭐ 屏幕四边形只有 2D 位置(2) + 纹理坐标(2)，stride = 4*sizeof(float)
     unsigned int quadVAO, quadVBO;
     glGenVertexArrays(1, &quadVAO);
     glGenBuffers(1, &quadVBO);
@@ -193,12 +216,16 @@ int main()
     screenShader.use();
     screenShader.setInt("screenTexture", 0);
 
+    // ---- 帧缓冲配置 ----
+    // ⭐ FBO 创建三步走：(1) 生成并绑定 FBO (2) 创建颜色附件纹理 (3) 创建深度/模板 RBO
     // framebuffer configuration
     // -------------------------
     unsigned int framebuffer;
     glGenFramebuffers(1, &framebuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
     // create a color attachment texture
+    // ⭐ 颜色附件：一张与窗口同分辨率的空纹理，场景将渲染到这张纹理上
+    //   最后一个参数传 NULL 表示只分配内存不填充数据
     unsigned int textureColorbuffer;
     glGenTextures(1, &textureColorbuffer);
     glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
@@ -207,6 +234,8 @@ int main()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
     // create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
+    // ⭐ 深度/模板附件使用 RBO 而非纹理：因为我们需要深度测试但不需要采样深度值，
+    //   RBO 经过优化，比纹理更适合作为只写的深度缓冲
     unsigned int rbo;
     glGenRenderbuffers(1, &rbo);
     glBindRenderbuffer(GL_RENDERBUFFER, rbo);
@@ -235,6 +264,7 @@ int main()
         processInput(window);
 
 
+        // ---- 第一趟渲染：场景 → FBO 纹理 ----
         // render
         // ------
         // bind to framebuffer and draw scene as we normally would to color texture 
@@ -269,8 +299,10 @@ int main()
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glBindVertexArray(0);
 
+        // ---- 第二趟渲染：FBO 纹理 → 屏幕四边形 ----
         // now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        // ⭐ 禁用深度测试：屏幕四边形是 2D 的，不需要深度比较
         glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
         // clear all relevant buffers
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
@@ -278,6 +310,7 @@ int main()
 
         screenShader.use();
         glBindVertexArray(quadVAO);
+        // ⭐ 将第一趟渲染的 FBO 颜色纹理绑定为屏幕四边形的纹理
         glBindTexture(GL_TEXTURE_2D, textureColorbuffer);	// use the color attachment texture as the texture of the quad plane
         glDrawArrays(GL_TRIANGLES, 0, 6);
 

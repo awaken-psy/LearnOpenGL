@@ -1,3 +1,6 @@
+// 10.2 小行星带片段着色器
+// 采样漫反射纹理，输出小行星表面颜色
+
 #version 330 core
 out vec4 FragColor;
 

@@ -1,3 +1,21 @@
+/**
+ * 深度测试（Depth Testing）—— 第一阶段：观察深度测试失效的效果
+ *
+ * 本演示展示当【深度测试】被"禁用"时会发生什么。
+ * 关键在于 glDepthFunc(GL_ALWAYS) —— 这会让所有片段都通过深度测试，
+ * 效果等同于禁用深度测试。结果是：后绘制的图元会无条件覆盖先绘制的图元，
+ * 无论它们在 3D 空间中的前后关系如何。
+ *
+ * 与后续 demo 的区别：
+ * - 本 demo 使用 GL_ALWAYS（深度测试形同虚设）
+ * - 1.2 demo 使用 GL_LESS（标准的深度测试行为），并线性化深度缓冲用于可视化
+ *
+ * 核心概念：
+ * - 【深度缓冲】(Depth Buffer / Z-Buffer)：存储每个像素的深度值
+ * - 【深度函数】(Depth Function)：决定新片段是否通过深度测试
+ * - 当深度测试被禁用或设为 GL_ALWAYS 时，渲染顺序决定了最终可见性
+ */
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
@@ -71,9 +89,11 @@ int main()
         return -1;
     }
 
-    // configure global opengl state
-    // -----------------------------
+    // ---- 深度测试配置 ----
     glEnable(GL_DEPTH_TEST);
+    // ⭐ 关键点：GL_ALWAYS 让所有片段都通过深度测试，等同于禁用深度测试
+    // 这意味着后绘制的物体（如地板）会覆盖先绘制的物体（如箱子），
+    // 即使地板在 3D 空间中位于箱子的后方。正常应使用 GL_LESS。
     glDepthFunc(GL_ALWAYS); // always pass the depth test (same effect as glDisable(GL_DEPTH_TEST))
 
     // build and compile shaders
@@ -196,6 +216,11 @@ int main()
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         shader.setMat4("view", view);
         shader.setMat4("projection", projection);
+
+        // ---- 渲染箱子和地板 ----
+        // ⭐ 注意绘制顺序：先画箱子，再画地板
+        // 由于 glDepthFunc(GL_ALWAYS)，地板会无条件覆盖箱子，
+        // 即使地板在 3D 空间中应该在箱子下方。这正是深度测试失效的视觉效果。
         // cubes
         glBindVertexArray(cubeVAO);
         glActiveTexture(GL_TEXTURE0);

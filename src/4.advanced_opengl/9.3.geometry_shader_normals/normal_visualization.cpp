@@ -1,3 +1,23 @@
+/**
+ * 演示：几何着色器可视化法线
+ * ============================
+ * 本演示加载 3D 模型（Backpack），先用普通着色器正常渲染模型，
+ * 再用几何着色器为每个三角形的顶点生成一条沿法线方向的线段，用于调试法线方向。
+ *
+ * 核心概念：
+ * - 几何着色器接收三角形图元，为每个顶点生成 2 个顶点组成线段（line_strip）。
+ * - 线段的起点是顶点位置，终点是顶点位置 + 法线方向 × 长度。
+ * - 法线可视化是调试 3D 渲染的常用手段，能直观检查法线是否正确。
+ *
+ * 与 9.2 的区别：
+ * - 9.2 的 GS 修改三角形顶点位置（变形）；
+ * - 本演示的 GS 生成全新的线段图元（线段不在原始网格中）。
+ *
+ * 双着色器渲染：
+ * - shader（普通着色器）：正常绘制模型
+ * - normalShader（法线着色器）：在模型之上叠加法线线段
+ */
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
@@ -38,7 +58,7 @@ int main()
     // ------------------------------
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 #ifdef __APPLE__
@@ -74,8 +94,9 @@ int main()
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
 
-    // build and compile shaders
-    // -------------------------
+    // ---- 构建两套着色器 ----
+    // shader：普通着色器（只有 VS + FS），正常渲染模型
+    // normalShader：法线可视化着色器（VS + GS + FS），生成法线线段
     Shader shader("9.3.default.vs", "9.3.default.fs");
     Shader normalShader("9.3.normal_visualization.vs", "9.3.normal_visualization.fs", "9.3.normal_visualization.gs");
 
@@ -112,10 +133,11 @@ int main()
         shader.setMat4("view", view);
         shader.setMat4("model", model);
 
-        // draw model as usual
+        // 第一次绘制：用普通着色器正常渲染模型
         backpack.Draw(shader);
 
-        // then draw model with normal visualizing geometry shader
+        // ⭐ 第二次绘制：用法线可视化着色器叠加法线线段
+        // 同一个模型 Draw 两次，但使用不同的着色器，产生"正常模型 + 法线线段"的效果
         normalShader.use();
         normalShader.setMat4("projection", projection);
         normalShader.setMat4("view", view);

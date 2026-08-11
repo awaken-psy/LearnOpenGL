@@ -1,3 +1,22 @@
+/**
+ * 11.1 MSAA 抗锯齿（Multisample Anti-Aliasing）
+ * =============================================
+ * 本演示展示最简单的抗锯齿方式：启用 OpenGL 内置的【多重采样】。
+ *
+ * 关键概念：
+ * - 【MSAA】：在光栅化阶段对每个像素的多个子样本进行采样，最后取平均，
+ *   平滑三角形边缘的锯齿。GLFW 默认请求 4x MSAA。
+ * - glEnable(GL_MULTISAMPLE)：启用多重采样（某些驱动默认开启，但显式启用更安全）
+ *
+ * 与之前演示的区别：
+ * - 之前渲染的立方体边缘有明显锯齿；本演示通过 MSAA 平滑边缘
+ * - 这是最简单的抗锯齿方式——硬件自动完成，无需修改着色器
+ *
+ * 与 11.2 的区别：
+ * - 11.1：直接渲染到默认帧缓冲（窗口），MSAA 由驱动自动解析
+ * - 11.2：渲染到自定义的多采样 FBO，需要手动 blit 解析后再做后处理
+ */
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
@@ -73,6 +92,8 @@ int main()
     // configure global opengl state
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
+    // ⭐ 启用【多重采样】——MSAA 抗锯齿的核心
+    // 某些驱动默认开启此选项，但显式调用确保在所有平台上生效
     glEnable(GL_MULTISAMPLE); // enabled by default on some drivers, but not all so always enable to make sure
 
     // build and compile shaders

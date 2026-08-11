@@ -1,3 +1,6 @@
+// 镜子四边形片元着色器 — 与 5.1 screen 着色器相同
+// 采样 FBO 中镜像视角的纹理，贴到镜子四边形上
+
 #version 330 core
 out vec4 FragColor;
 

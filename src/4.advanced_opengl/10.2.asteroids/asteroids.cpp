@@ -1,3 +1,22 @@
+/**
+ * 10.2 小行星带（未实例化）— 性能问题演示
+ * =========================================
+ * 本演示渲染一个行星和 1000 颗小行星，但每颗小行星都使用单独的 draw call。
+ * 这是实例化教学的"反面教材"——展示了不使用实例化时的性能瓶颈。
+ *
+ * 关键概念：
+ * - 每颗小行星有独立的【模型矩阵】，在循环中逐个设置并绘制
+ * - 1000 次 setMat4 + Draw = 1000 次 draw call，CPU-GPU 通信开销巨大
+ *
+ * 与 10.1 的区别：
+ * - 10.1 用简单的四边形演示实例化；本演示使用真实的 3D 模型（rock.obj）
+ * - 本演示故意不使用实例化，以便与 10.3 的实例化版本对比性能
+ *
+ * 与 10.3 的区别：
+ * - 本演示：1000 颗，1000 次 draw call → 帧率低
+ * - 10.3：100000 颗，每个 mesh 仅 1 次 draw call → 帧率高
+ */
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
@@ -83,8 +102,9 @@ int main()
     Model rock(FileSystem::getPath("resources/objects/rock/rock.obj"));
     Model planet(FileSystem::getPath("resources/objects/planet/planet.obj"));
 
-    // generate a large list of semi-random model transformation matrices
-    // ------------------------------------------------------------------
+    // ---- 生成 1000 个随机模型变换矩阵 ----
+    // 每颗小行星有独立的平移、缩放、旋转
+    // ⭐ 注意：这里只生成 1000 颗，因为不用实例化时数量再大会严重卡顿
     unsigned int amount = 1000;
     glm::mat4* modelMatrices;
     modelMatrices = new glm::mat4[amount];
@@ -149,7 +169,10 @@ int main()
         shader.setMat4("model", model);
         planet.Draw(shader);
 
-        // draw meteorites
+        // ---- 逐个绘制小行星：性能瓶颈所在 ----
+        // ⭐ 每颗小行星都需要：1) CPU 设置 uniform model 矩阵 → 2) 发起一次 draw call
+        // 1000 次循环 = 1000 次 draw call，CPU-GPU 通信成为瓶颈
+        // 对比 10.3 的实例化方案，这种做法在数量大时帧率会急剧下降
         for (unsigned int i = 0; i < amount; i++)
         {
             shader.setMat4("model", modelMatrices[i]);

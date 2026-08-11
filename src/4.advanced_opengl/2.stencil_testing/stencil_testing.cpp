@@ -1,3 +1,25 @@
+/**
+ * 模板测试（Stencil Testing）—— 物体轮廓/描边效果
+ *
+ * 本演示利用【模板缓冲】(Stencil Buffer) 实现物体轮廓描边效果。
+ * 模板测试允许我们控制哪些像素可以被绘制，是一种像素级的遮罩机制。
+ *
+ * 核心概念：
+ * - 【模板缓冲】：为每个像素存储一个整数值，可用于控制是否接受或拒绝片段
+ * - 【模板函数】glStencilFunc：设置模板测试的比较方式（比较值、参考值、掩码）
+ * - 【模板操作】glStencilOp：设置模板测试通过/失败时如何更新模板缓冲
+ * - 【模板掩码】glStencilMask：控制哪些位可以被写入模板缓冲（0x00=禁止写入，0xFF=允许写入）
+ *
+ * 描边实现原理（两遍渲染）：
+ * 1. 第一遍：正常绘制物体，同时将物体覆盖的像素在模板缓冲中写入 1
+ * 2. 第二遍：绘制放大版的物体，但只在模板值 != 1 的地方绘制（即物体边缘）
+ *    这样就只绘制了放大部分与原物体的差值——即轮廓边框
+ *
+ * 与之前 demo 的区别：
+ * - 新增了模板测试相关配置
+ * - 使用两个 shader：一个正常渲染，一个输出纯色用于描边
+ * - 地板不写入模板缓冲（glStencilMask(0x00)），只有箱子参与轮廓计算
+ */
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
@@ -71,17 +93,24 @@ int main()
         return -1;
     }
 
-    // configure global opengl state
-    // -----------------------------
+    // ---- 深度测试 + 模板测试配置 ----
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
     glEnable(GL_STENCIL_TEST);
+    // ⭐ glStencilFunc：设置模板测试的比较函数
+    //   GL_NOTEQUAL：当模板缓冲值 != 参考值(1) 时通过测试
+    //   这个配置用于第二遍渲染——只在模板值不等于 1 的地方绘制（即边缘区域）
     glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+    // ⭐ glStencilOp：设置模板测试各情况下的操作
+    //   参数顺序：(模板测试失败, 深度测试失败但模板通过, 两者都通过)
+    //   GL_KEEP, GL_KEEP, GL_REPLACE = 前两种情况保持不变，
+    //   两者都通过时用参考值(1)替换模板缓冲值
     glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
     // build and compile shaders
     // -------------------------
     Shader shader("2.stencil_testing.vs", "2.stencil_testing.fs");
+    // ⭐ 第二个 shader 用于绘制纯色描边，共享同一个顶点着色器
     Shader shaderSingleColor("2.stencil_testing.vs", "2.stencil_single_color.fs");
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
@@ -192,6 +221,7 @@ int main()
         // render
         // ------
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        // ⭐ 每帧都要清除模板缓冲（GL_STENCIL_BUFFER_BIT）
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT); // don't forget to clear the stencil buffer!
 
         // set uniforms
@@ -206,7 +236,9 @@ int main()
         shader.setMat4("view", view);
         shader.setMat4("projection", projection);
 
-        // draw floor as normal, but don't write the floor to the stencil buffer, we only care about the containers. We set its mask to 0x00 to not write to the stencil buffer.
+        // ---- 第零步：绘制地板（不写入模板缓冲）----
+        // ⭐ glStencilMask(0x00) 禁止写入模板缓冲，这样地板不会影响后续的描边逻辑
+        // 只有箱子参与模板测试，地板只作为背景正常渲染
         glStencilMask(0x00);
         // floor
         glBindVertexArray(planeVAO);
@@ -215,7 +247,10 @@ int main()
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glBindVertexArray(0);
 
-        // 1st. render pass, draw objects as normal, writing to the stencil buffer
+        // ---- 第一步：正常绘制箱子，同时写入模板缓冲 ----
+        // ⭐ glStencilFunc(GL_ALWAYS, 1, 0xFF)：所有片段都通过模板测试
+        //   glStencilMask(0xFF)：允许写入模板缓冲
+        //   结合之前设置的 glStencilOp(...GL_REPLACE)，箱子覆盖的像素模板值将被设为 1
         // --------------------------------------------------------------------
         glStencilFunc(GL_ALWAYS, 1, 0xFF);
         glStencilMask(0xFF);
@@ -231,9 +266,14 @@ int main()
         shader.setMat4("model", model);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
-        // 2nd. render pass: now draw slightly scaled versions of the objects, this time disabling stencil writing.
-        // Because the stencil buffer is now filled with several 1s. The parts of the buffer that are 1 are not drawn, thus only drawing 
-        // the objects' size differences, making it look like borders.
+        // ---- 第二步：绘制放大版箱子作为描边 ----
+        // ⭐ 关键逻辑：
+        //   1. glStencilFunc(GL_NOTEQUAL, 1, 0xFF)：只在模板值 != 1 的像素上绘制
+        //   2. glStencilMask(0x00)：不再写入模板缓冲，保护第一步的结果
+        //   3. glDisable(GL_DEPTH_TEST)：放大版箱子不会被自身遮挡
+        //   4. 放大版箱子比原始箱子大 10%，多出来的部分就是描边
+        //   因为原始箱子覆盖的区域模板值=1，所以放大版在这些区域被模板测试拒绝，
+        //   只有超出原始箱子边界的部分才会通过——形成轮廓效果
         // -----------------------------------------------------------------------------------------------------------------------------
         glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
         glStencilMask(0x00);
@@ -254,6 +294,7 @@ int main()
         shaderSingleColor.setMat4("model", model);
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glBindVertexArray(0);
+        // ⭐ 恢复模板测试和深度测试的默认状态，避免影响下一帧
         glStencilMask(0xFF);
         glStencilFunc(GL_ALWAYS, 0, 0xFF);
         glEnable(GL_DEPTH_TEST);

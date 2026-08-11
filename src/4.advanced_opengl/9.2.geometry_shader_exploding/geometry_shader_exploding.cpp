@@ -1,3 +1,19 @@
+/**
+ * 演示：几何着色器爆炸效果
+ * =========================
+ * 本演示加载 3D 模型（Nanosuit），通过几何着色器将每个三角形的顶点
+ * 沿法线方向位移，产生"爆炸"动画效果。
+ *
+ * 核心概念：
+ * - 几何着色器接收三角形图元，计算面法线，然后将三个顶点沿法线方向偏移。
+ * - 偏移量随时间变化（sin 函数），产生周期性的膨胀与收缩动画。
+ * - 这是几何着色器修改现有几何体的典型应用 —— 不增减顶点数量，只改变位置。
+ *
+ * 与 9.1 的区别：
+ * - 9.1 的 GS 是"生成"新几何体（从点生成房子）；
+ * - 本演示的 GS 是"变形"现有几何体（位移三角形顶点）。
+ */
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
@@ -74,8 +90,8 @@ int main()
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
 
-    // build and compile shaders
-    // -------------------------
+    // ---- 构建着色器 ----
+    // 包含顶点+几何+片段三个着色器阶段
     Shader shader("9.2.geometry_shader.vs", "9.2.geometry_shader.fs", "9.2.geometry_shader.gs");
 
     // load models
@@ -110,7 +126,8 @@ int main()
         shader.setMat4("view", view);
         shader.setMat4("model", model);
 
-        // add time component to geometry shader in the form of a uniform
+        // ⭐ 将当前时间传递给几何着色器，用于驱动爆炸动画
+        // GS 中使用 sin(time) 计算位移量，使模型周期性膨胀与收缩
         shader.setFloat("time", static_cast<float>(glfwGetTime()));
 
         // draw model

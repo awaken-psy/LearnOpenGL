@@ -1,3 +1,21 @@
+/**
+ * 混合（Blending）—— 第一阶段：使用 discard 丢弃透明像素
+ *
+ * 本演示展示处理透明纹理的最简单方法：在片段着色器中用 discard 关键字
+ * 丢弃完全透明的片段（alpha < 0.1）。这样透明区域不会被绘制，
+ * 也不会写入深度缓冲，从而不会遮挡其后方的物体。
+ *
+ * 关键概念：
+ * - 【discard】：GLSL 关键字，直接终止当前片段的着色器执行并丢弃该片段
+ * - 适用于"要么完全透明、要么完全不透明"的纹理（如草纹理周围的空白区域）
+ * - 不需要启用【混合】(GL_BLEND)，因为不存在半透明过渡
+ * - ⭐ discard 的代价：会破坏 GPU 的【早期深度测试】优化，因为 GPU 必须先
+ *   执行片段着色器才能知道是否丢弃，无法提前剔除被遮挡的片段
+ *
+ * 与后续 demo 的区别：
+ * - 3.1 使用 discard（丢弃），不支持半透明效果
+ * - 3.2 使用真正的 alpha 混合，需要按深度排序才能正确渲染
+ */
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
@@ -71,8 +89,9 @@ int main()
         return -1;
     }
 
-    // configure global opengl state
-    // -----------------------------
+    // ---- 全局 OpenGL 状态配置 ----
+    // ⭐ 注意：这里只启用了深度测试，没有启用混合（GL_BLEND）
+    // 因为 discard 方案不需要混合——透明像素直接被丢弃，不参与颜色合成
     glEnable(GL_DEPTH_TEST);
 
      // build and compile shaders
@@ -135,6 +154,8 @@ int main()
         -5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
          5.0f, -0.5f, -5.0f,  2.0f, 2.0f
     };
+    // ⭐ 透明植被的四边形顶点数据
+    // 注意 Y 纹理坐标被交换了（因为纹理是上下翻转的）
     float transparentVertices[] = {
         // positions         // texture Coords (swapped y coordinates because texture is flipped upside down)
         0.0f,  0.5f,  0.0f,  0.0f,  0.0f,
@@ -184,9 +205,12 @@ int main()
     // -------------
     unsigned int cubeTexture = loadTexture(FileSystem::getPath("resources/textures/marble.jpg").c_str());
     unsigned int floorTexture = loadTexture(FileSystem::getPath("resources/textures/metal.png").c_str());
+    // ⭐ 草纹理包含透明通道（RGBA），周围区域 alpha=0
     unsigned int transparentTexture = loadTexture(FileSystem::getPath("resources/textures/grass.png").c_str());
 
-    // transparent vegetation locations
+    // ---- 透明植被位置 ----
+    // 草丛在场景中的位置，注意这些位置不需要排序——
+    // 因为 discard 方案不涉及混合，透明像素被完全丢弃，不会产生排序问题
     // --------------------------------
     vector<glm::vec3> vegetation 
     {
@@ -245,6 +269,10 @@ int main()
         model = glm::mat4(1.0f);
         shader.setMat4("model", model);
         glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        // ---- 渲染透明植被 ----
+        // ⭐ 片段着色器中会 discard 透明像素，所以渲染顺序不影响结果
+        // 被丢弃的片段不会写入颜色缓冲或深度缓冲，后方的物体仍然可见
         // vegetation
         glBindVertexArray(transparentVAO);
         glBindTexture(GL_TEXTURE_2D, transparentTexture);
@@ -352,6 +380,9 @@ unsigned int loadTexture(char const * path)
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
 
+        // ⭐ 对于 RGBA 纹理使用 GL_CLAMP_TO_EDGE 而非 GL_REPEAT
+        // 原因：如果使用 GL_REPEAT，纹理边缘的透明像素会和下一轮重复的像素
+        // 产生插值，导致半透明的边框。GL_CLAMP_TO_EDGE 避免了这个问题。
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT); // for this tutorial: use GL_CLAMP_TO_EDGE to prevent semi-transparent borders. Due to interpolation it takes texels from next repeat 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);

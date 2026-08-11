@@ -1,3 +1,27 @@
+/**
+ * 第三章:模型加载(Model Loading)— 用 Assimp 加载复杂 3D 模型
+ *
+ * 之前章节的立方体都是手写顶点数据(36 个顶点),画复杂物体不可能这么干。
+ * 本课引入 Assimp 库,加载 .obj/.fbx 等标准模型文件,自动处理:
+ *   - 顶点位置、法线、纹理坐标
+ *   - 面索引(EBO)
+ *   - 材质纹理(漫反射/镜面反射/法线贴图)
+ *   - 嵌套节点层级(场景图)
+ *
+ * 核心类(在 includes/learnopengl/ 中):
+ *   - Model:加载模型文件 → 递归遍历节点 → 提取 Mesh 列表
+ *   - Mesh:封装一个网格的 VAO/VBO/EBO + 纹理,提供 Draw() 方法
+ *
+ * 本课 shader 极简(只采样漫反射纹理),因为重点在模型加载流程,不在光照。
+ * 下一章(Advanced OpenGL)才会给模型加完整光照。
+ *
+ * 关键新概念:
+ *   - stbi_set_flip_vertically_on_load(true):模型纹理通常需要翻转 Y 轴
+ *   - Model::Draw() 遍历所有 Mesh,每个 Mesh 各自绑定纹理 + 绑定 VAO + glDrawElements
+ *   - 纹理命名约定:texture_diffuseN / texture_specularN / texture_normalN
+ *     (N 从 1 开始,Mesh::Draw 按此约定自动绑定到对应纹理单元)
+ */
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -69,7 +93,9 @@ int main()
         return -1;
     }
 
-    // tell stb_image.h to flip loaded texture's on the y-axis (before loading model).
+    // ⭐ 模型纹理的 Y 轴翻转:大多数建模软件的纹理原点在左下角,
+    //   而 .obj 等格式可能不同,Assimp 的 aiProcess_FlipUVs 后处理会翻转 UV,
+    //   stbi 也需要配合翻转,确保纹理方向正确。
     stbi_set_flip_vertically_on_load(true);
 
     // configure global opengl state
@@ -80,8 +106,9 @@ int main()
     // -------------------------
     Shader ourShader("1.model_loading.vs", "1.model_loading.fs");
 
-    // load models
-    // -----------
+    // ⭐ 加载模型:Model 构造函数内部调用 Assimp 读取 .obj 文件,
+    //   递归遍历节点树,提取所有 Mesh,加载纹理,生成 VAO/VBO/EBO。
+    //   之后只需要调用 ourModel.Draw(ourShader) 即可渲染整个模型。
     Model ourModel(FileSystem::getPath("resources/objects/backpack/backpack.obj"));
 
     
@@ -107,20 +134,24 @@ int main()
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // don't forget to enable shader before setting uniforms
+        // ---- 渲染模型 ----
         ourShader.use();
 
-        // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
         ourShader.setMat4("projection", projection);
         ourShader.setMat4("view", view);
 
-        // render the loaded model
+        // model 矩阵:定位/缩放模型(这里保持原位原大小)
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
         ourShader.setMat4("model", model);
+
+        // ⭐ Model::Draw 遍历所有 Mesh,每个 Mesh 内部:
+        //   1. 绑定纹理到对应纹理单元(texture_diffuse1 → GL_TEXTURE0, etc.)
+        //   2. 绑定 VAO
+        //   3. glDrawElements(按索引绘制三角形)
         ourModel.Draw(ourShader);
 
 
@@ -161,6 +192,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
 }
+
 
 // glfw: whenever the mouse moves, this callback is called
 // -------------------------------------------------------

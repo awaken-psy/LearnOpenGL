@@ -1,3 +1,23 @@
+/**
+ * 环境映射 — 使用立方体贴图实现反射效果
+ *
+ * 本 demo 在 6.1 天空盒的基础上，让场景中的立方体反射天空盒的环境：
+ *   - 立方体不再使用 2D 纹理，而是采样【立方体贴图】实现反射
+ *   - 需要顶点法线和摄像机位置来计算反射方向
+ *
+ * ⭐ 反射原理：
+ *   1. 计算视线方向 I = normalize(Position - cameraPos)
+ *   2. 用 GLSL reflect(I, N) 计算反射向量 R
+ *   3. 用 R 作为方向向量采样立方体贴图：texture(skybox, R)
+ *   这样物体表面就"映出"了周围的环境
+ *
+ * 与 6.1 的区别：
+ *   - 立方体顶点数据包含【法线】(3) 而非纹理坐标(2)，stride = 6
+ *   - 着色器中传入 cameraPos uniform
+ *   - 立方体不再加载 2D 纹理，直接复用天空盒的 cubemapTexture
+ *   - 天空盒部分与 6.1 完全相同
+ */
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
@@ -83,6 +103,8 @@ int main()
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
+    // ⭐ 与 6.1 不同：立方体顶点包含【法线】(3) 而非纹理坐标(2)
+    //   反射计算需要法线来确定反射方向，stride = 6*sizeof(float)
     float cubeVertices[] = {
         // positions          // normals
         -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
@@ -173,6 +195,7 @@ int main()
     };
 
     // cube VAO
+    // ⭐ stride = 6*sizeof(float)：位置(3) + 法线(3)
     unsigned int cubeVAO, cubeVBO;
     glGenVertexArrays(1, &cubeVAO);
     glGenBuffers(1, &cubeVBO);
@@ -195,6 +218,7 @@ int main()
 
     // load textures
     // -------------
+    // ⭐ 与 6.1 不同：不需要单独的 2D 立方体纹理，立方体直接复用天空盒的 cubemapTexture
     vector<std::string> faces
     {
         FileSystem::getPath("resources/textures/skybox/right.jpg"),
@@ -208,6 +232,7 @@ int main()
 
     // shader configuration
     // --------------------
+    // ⭐ 立方体和天空盒都使用 cubemapTexture，绑定为 samplerCube
     shader.use();
     shader.setInt("skybox", 0);
 
@@ -233,6 +258,7 @@ int main()
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // ---- 渲染反射立方体 ----
         // draw scene as normal
         shader.use();
         glm::mat4 model = glm::mat4(1.0f);
@@ -241,14 +267,17 @@ int main()
         shader.setMat4("model", model);
         shader.setMat4("view", view);
         shader.setMat4("projection", projection);
+        // ⭐ 传入摄像机位置：反射计算需要知道观察方向
         shader.setVec3("cameraPos", camera.Position);
         // cubes
         glBindVertexArray(cubeVAO);
         glActiveTexture(GL_TEXTURE0);
+        // ⭐ 立方体绑定的是立方体贴图而非 2D 纹理
         glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glBindVertexArray(0);
 
+        // ---- 渲染天空盒（与 6.1 完全相同）----
         // draw skybox as last
         glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
         skyboxShader.use();

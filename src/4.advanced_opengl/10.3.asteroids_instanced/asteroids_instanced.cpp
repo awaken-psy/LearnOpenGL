@@ -1,3 +1,23 @@
+/**
+ * 10.3 实例化小行星带（Instanced Asteroids）
+ * ==========================================
+ * 本演示是 10.2 的实例化版本：用一次 draw call 渲染 100000 颗小行星。
+ *
+ * 关键概念：
+ * - 【mat4 实例化属性】：将 4x4 模型矩阵作为顶点属性传入，但用 glVertexAttribDivisor
+ *   设为每实例更新。mat4 占 4 个 vec4，因此需要占用 4 个 attribute location（3,4,5,6）。
+ * - glDrawElementsInstanced：每个 mesh 仅需一次 draw call 即可绘制全部实例。
+ *
+ * 与 10.2 的区别：
+ * - 10.2：1000 颗，1000 次 draw call（性能差）
+ * - 10.3：100000 颗，每个 mesh 仅 1 次 draw call（性能好 100 倍以上）
+ *
+ * 实现要点：
+ * - 预计算所有实例的 model 矩阵，存入 VBO
+ * - mat4 需要拆成 4 个 vec4 分别设置 attribute pointer
+ * - 直接操作 Model 类内部的 mesh VAO（为教学目的简化了封装）
+ */
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
@@ -84,8 +104,8 @@ int main()
     Model rock(FileSystem::getPath("resources/objects/rock/rock.obj"));
     Model planet(FileSystem::getPath("resources/objects/planet/planet.obj"));
 
-    // generate a large list of semi-random model transformation matrices
-    // ------------------------------------------------------------------
+    // ---- 生成 100000 个随机模型变换矩阵 ----
+    // ⭐ 与 10.2 的 1000 颗相比，这里使用 100000 颗——实例化让这成为可能
     unsigned int amount = 100000;
     glm::mat4* modelMatrices;
     modelMatrices = new glm::mat4[amount];
@@ -117,22 +137,26 @@ int main()
         modelMatrices[i] = model;
     }
 
-    // configure instanced array
-    // -------------------------
+    // ---- 配置实例化数组 ----
+    // 将所有 mat4 模型矩阵上传到一个 VBO 中
     unsigned int buffer;
     glGenBuffers(1, &buffer);
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
     glBufferData(GL_ARRAY_BUFFER, amount * sizeof(glm::mat4), &modelMatrices[0], GL_STATIC_DRAW);
 
-    // set transformation matrices as an instance vertex attribute (with divisor 1)
-    // note: we're cheating a little by taking the, now publicly declared, VAO of the model's mesh(es) and adding new vertexAttribPointers
-    // normally you'd want to do this in a more organized fashion, but for learning purposes this will do.
-    // -----------------------------------------------------------------------------------------------------------------------------------
+    // ---- 将 mat4 设置为实例化顶点属性 ----
+    // ⭐ 核心难点：mat4 不能直接作为一个 attribute，需要拆成 4 个 vec4
+    // 分别绑定到 location 3, 4, 5, 6，每个 vec4 对应 mat4 的一列
+    // 然后对每个 location 调用 glVertexAttribDivisor(..., 1) 设为每实例更新
+    //
+    // 注意：这里直接访问 Model 类内部的 mesh VAO（为了教学简化了封装）
+    // 生产环境中应该在 Model 类内部封装此逻辑
     for (unsigned int i = 0; i < rock.meshes.size(); i++)
     {
         unsigned int VAO = rock.meshes[i].VAO;
         glBindVertexArray(VAO);
-        // set attribute pointers for matrix (4 times vec4)
+        // ⭐ mat4 = 4 个 vec4，分别设置 4 个 attribute pointer
+        // 每列偏移量：第 0 列偏移 0，第 1 列偏移 sizeof(vec4)，依此类推
         glEnableVertexAttribArray(3);
         glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
         glEnableVertexAttribArray(4);
@@ -142,6 +166,7 @@ int main()
         glEnableVertexAttribArray(6);
         glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
 
+        // ⭐ 除数设为 1：每个实例更新一次（而非每个顶点）
         glVertexAttribDivisor(3, 1);
         glVertexAttribDivisor(4, 1);
         glVertexAttribDivisor(5, 1);
@@ -186,7 +211,9 @@ int main()
         planetShader.setMat4("model", model);
         planet.Draw(planetShader);
 
-        // draw meteorites
+        // ---- 实例化绘制小行星 ----
+        // ⭐ 每个 mesh 只需 1 次 draw call 即可绘制全部 100000 颗小行星
+        // 对比 10.2 的 1000 次循环 draw call，性能提升巨大
         asteroidShader.use();
         asteroidShader.setInt("texture_diffuse1", 0);
         glActiveTexture(GL_TEXTURE0);
@@ -194,6 +221,7 @@ int main()
         for (unsigned int i = 0; i < rock.meshes.size(); i++)
         {
             glBindVertexArray(rock.meshes[i].VAO);
+            // ⭐ glDrawElementsInstanced：第 5 个参数 = 实例数量（100000）
             glDrawElementsInstanced(GL_TRIANGLES, static_cast<unsigned int>(rock.meshes[i].indices.size()), GL_UNSIGNED_INT, 0, amount);
             glBindVertexArray(0);
         }

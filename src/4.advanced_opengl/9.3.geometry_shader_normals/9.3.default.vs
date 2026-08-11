@@ -1,3 +1,5 @@
+// 顶点着色器：默认模型渲染
+// 标准 MVP 变换，用于正常渲染 Backpack 模型（无法线可视化）。
 #version 330 core
 layout (location = 0) in vec3 aPos;
 layout (location = 2) in vec2 aTexCoords;
