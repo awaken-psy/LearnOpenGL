@@ -32,6 +32,20 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+/**
+ * 聚光灯(软边)— 在 5.3 基础上让锥边柔和过渡
+ *
+ * 5.3 的硬边聚光灯锥内外突变,边缘锯齿明显。本节加一个【外锥角】outerCutOff,
+ * 在内锥(cutOff)和外锥(outerCutOff)之间让亮度平滑地从 1 降到 0,边缘自然柔化。
+ *
+ * 改动(相对 5.3):
+ *   - struct Light 加 outerCutOff(外锥角余弦,比内锥大)
+ *   - cpp 多设 outerCutOff = cos(17.5°)(内锥 12.5°、外锥 17.5°,之间 5° 过渡带)
+ *   - fs 里用 clamp((theta - outer) / (cutOff - outer), 0, 1) 算强度,代替 if/else
+ *
+ * 体会:仅 5° 的过渡带就让生硬的光斑边缘变成柔和渐变——这就是"软边"的力量。
+ */
+
 int main()
 {
     // glfw: initialize and configure
@@ -199,8 +213,8 @@ int main()
         lightingShader.use();
         lightingShader.setVec3("light.position", camera.Position);
         lightingShader.setVec3("light.direction", camera.Front);
-        lightingShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
-        lightingShader.setFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
+        lightingShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));       // 内锥角余弦(锥内全亮)
+        lightingShader.setFloat("light.outerCutOff", glm::cos(glm::radians(17.5f))); // 外锥角余弦(比内锥大 5°,这 5° 是过渡带)
         lightingShader.setVec3("viewPos", camera.Position);
 
         // light properties

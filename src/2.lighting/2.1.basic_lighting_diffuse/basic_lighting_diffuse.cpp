@@ -30,7 +30,23 @@ bool firstMouse = true;
 float deltaTime = 0.0f;	
 float lastFrame = 0.0f;
 
-// lighting
+/**
+ * 漫反射(Diffuse)— 光照越垂直于表面,越亮
+ *
+ * 这是 Phong 光照模型的第一块拼图。上一节整个立方体均匀亮,本节开始有了明暗:
+ * 正对光源的面亮,侧着对光源的面暗,背光的面接近全黑。
+ *
+ * 新增内容(相对 1.colors):
+ *   - 顶点数据多了【法线 normal】分量:每个顶点现在是 6 个 float(位置3 + 法线3)
+ *   - 顶点属性变成 2 个:location=0 位置、location=1 法线
+ *   - fs 里多了漫反射计算:光照方向 · 表面法线(点乘)决定亮度
+ *   - 引入【环境光 ambient】:给所有面加一点底光,避免背光面纯黑(模拟间接光)
+ *
+ * 漫反射的直觉:光线越正对墙面,能量越集中 → 越亮;越斜越暗(余弦定律)。
+ * 数学上就是"法线"和"光照方向"的夹角余弦 = 两个单位向量的点乘。
+ */
+
+// 光源位置(同 1.colors)
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
 int main()
@@ -138,7 +154,8 @@ int main()
     // position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    // normal attribute
+    // normal attribute(新增)— 法线,3 个 float,紧跟在位置后面
+    // stride = 6*sizeof(float)(每顶点 6 个 float:3 位置 + 3 法线),偏移 3*sizeof(float) 跳过位置。
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
@@ -150,6 +167,8 @@ int main()
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     // note that we update the lamp's position attribute's stride to reflect the updated buffer data
+    // ↑ 顶点数据现在是 6 float/顶点,光源 VAO 只取位置(location=0),但 stride 也要写成 6,
+    //   否则会错位读到法线分量当位置。光源立方体不参与光照,不需要法线。
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
@@ -177,6 +196,7 @@ int main()
         lightingShader.use();
         lightingShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
         lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+        // 新增:把光源位置传给 fs,fs 用它算"片段 → 光源"的方向 lightDir。
         lightingShader.setVec3("lightPos", lightPos);
 
         // view/projection transformations

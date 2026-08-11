@@ -30,7 +30,22 @@ bool firstMouse = true;
 float deltaTime = 0.0f;	
 float lastFrame = 0.0f;
 
-// lighting
+/**
+ * 镜面反射(Specular)— 在漫反射基础上加高光
+ *
+ * 漫反射只看"光和面的角度",所以无论你从哪个角度看,同一个点亮度都一样。
+ * 镜面反射额外考虑【观察方向】:当反射光正好射向你眼睛时,你会看到一个亮斑(高光)。
+ * 这就是金属/塑料表面的那种反光质感。
+ *
+ * 新增内容(相对 2.1):
+ *   - vs 里法线改用【法线矩阵】变换:mat3(transpose(inverse(model))) * aNormal
+ *     (当 model 含非均匀缩放时,直接用 model 变换法线会算错方向,必须用法线矩阵)
+ *   - fs 里多了 specular 项:反射向量 · 视线方向(点乘)+ 幂次(控制高光锐度)
+ *   - 新增 uniform viewPos(相机位置):高光依赖视角,得知道眼睛在哪
+ *
+ * 完整公式:颜色 = (环境光 + 漫反射 + 镜面反射) × 物体颜色   ← Phong 模型完整版
+ */
+
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
 int main()
@@ -178,6 +193,8 @@ int main()
         lightingShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
         lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
         lightingShader.setVec3("lightPos", lightPos);
+        // 新增:把相机位置传给 fs。镜面高光依赖【观察方向】,必须知道眼睛在哪。
+        // camera.Position 是 Camera 类的公开成员(世界空间坐标)。
         lightingShader.setVec3("viewPos", camera.Position);
 
         // view/projection transformations

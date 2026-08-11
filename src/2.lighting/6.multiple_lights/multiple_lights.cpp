@@ -32,7 +32,25 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-// lighting
+/**
+ * 多光源 — 把前面所有光源组合进一个场景(第二章终章)
+ *
+ * 场景里同时有:1 个方向光(太阳)+ 4 个点光源(彩色灯泡)+ 1 个聚光灯(跟相机的手电筒)。
+ * 这是前面 5 节成果的总集成。
+ *
+ * 新增内容(相对 5.x):
+ *   - fs 定义 3 个结构体:DirLight / PointLight / SpotLight(每种光源分开)
+ *   - fs 用 uniform 数组 PointLight pointLights[4](#define NR_POINT_LIGHTS 4)
+ *   - fs 把每种光的计算封装成函数:CalcDirLight / CalcPointLight / CalcSpotLight
+ *   - main 里:result = 方向光 + Σ(4 个点光源) + 聚光灯(累加所有光的贡献)
+ *   - cpp 设 4 个点光源位置,画 4 个光源立方体代表它们
+ *
+ * 数组 uniform 的命名规则:pointLights[i].position —— 用 "数组名[下标].字段" 设置,
+ * 和单结构体的 "light.position" 同理,只是多了 [下标]。
+ * (教程提示:逐个手设很啰嗦,后面 Advanced GLSL 章会用 UBO 统一管理。)
+ */
+
+// 这里 lightPos 没实际用到(多光源各有位置),保留只是惯例。
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
 int main()
@@ -141,7 +159,7 @@ int main()
         glm::vec3( 1.5f,  0.2f, -1.5f),
         glm::vec3(-1.3f,  1.0f, -1.5f)
     };
-    // positions of the point lights
+    // 4 个点光源的位置(散布在场景各处,每个都画个小立方体代表)
     glm::vec3 pointLightPositions[] = {
         glm::vec3( 0.7f,  0.2f,  2.0f),
         glm::vec3( 2.3f, -3.3f, -4.0f),
@@ -216,7 +234,8 @@ int main()
            by defining light types as classes and set their values in there, or by using a more efficient uniform approach
            by using 'Uniform buffer objects', but that is something we'll discuss in the 'Advanced GLSL' tutorial.
         */
-        // directional light
+        // 下面逐个设置每种光源的 uniform:dirLight / spotLight 是单个,pointLights[i] 是数组。
+        // directional light(方向光,1 个)
         lightingShader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
         lightingShader.setVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
         lightingShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
@@ -301,6 +320,7 @@ int main()
          lightCubeShader.setMat4("projection", projection);
          lightCubeShader.setMat4("view", view);
     
+         // 画 4 个点光源立方体(每个 pointLightPositions 位置一个),让点光源"可见"。
          // we now draw as many light bulbs as we have point lights.
          glBindVertexArray(lightCubeVAO);
          for (unsigned int i = 0; i < 4; i++)

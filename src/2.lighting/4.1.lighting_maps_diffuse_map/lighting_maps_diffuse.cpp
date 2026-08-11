@@ -32,7 +32,24 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-// lighting
+/**
+ * 漫反射贴图(Diffuse Map)— 用纹理代替材质的单色
+ *
+ * 上一节(3.x)材质的 diffuse 是单一颜色 vec3,整个物体均匀一色,不真实。
+ * 本节用一张【漫反射贴图】(diffuse map)代替它:物体表面每个像素的颜色由纹理决定,
+ * 比如木箱的木板纹理。这就是"贴图"在光照里的用法。
+ *
+ * 新增内容(相对 3.x):
+ *   - 顶点数据加回【纹理坐标】:每顶点又变回 8 个 float(位置3 + 法线3 + 纹理2)
+ *   - 顶点属性变成 3 个:location=0 位置、1 法线、2 纹理坐标
+ *   - struct Material 里 diffuse 从 vec3 改成 sampler2D(纹理采样器)
+ *   - fs 里用 texture(material.diffuse, TexCoords).rgb 取代原来的 material.diffuse
+ *   - 引入 loadTexture() 工具函数:封装纹理加载(第一章手写的步骤收进函数)
+ *   - cpp 用 setInt("material.diffuse", 0) 把纹理绑定到【纹理单元 0】
+ *
+ * 关键认知:纹理坐标让每个片段从纹理图里查到自己的颜色——于是光照打在"有花纹"的表面上。
+ */
+
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
 int main()
@@ -137,11 +154,12 @@ int main()
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     glBindVertexArray(cubeVAO);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    // 三个顶点属性,stride 都是 8*sizeof(float)(每顶点 8 个 float):
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);                    // 位置
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));  // 法线
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));  // 纹理坐标(新增)
     glEnableVertexAttribArray(2);
 
     // second, configure the light's VAO (VBO stays the same; the vertices are the same for the light object which is also a 3D cube)
@@ -156,11 +174,15 @@ int main()
 
     // load textures (we now use a utility function to keep the code more organized)
     // -----------------------------------------------------------------------------
+    // 加载漫反射贴图(木箱表面)。loadTexture() 是文件末尾的工具函数,封装了
+    // glGenTextures + stbi_load + glTexImage2D + mipmaps 那一套(第一章里手写过)。
     unsigned int diffuseMap = loadTexture(FileSystem::getPath("resources/textures/container2.png").c_str());
 
     // shader configuration
     // --------------------
     lightingShader.use(); 
+    // material.diffuse 现在是 sampler2D(纹理采样器),不是颜色——
+    // 所以用 setInt 传【纹理单元编号】0,告诉 shader 从单元 0 采样。
     lightingShader.setInt("material.diffuse", 0);
 
 
@@ -193,7 +215,8 @@ int main()
         lightingShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
         lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 
-        // material properties
+        // 材质属性:diffuse 已是纹理(上面 setInt 了),这里只剩 specular(暂用灰色 vec3)和 shininess。
+        // 注意没有 material.diffuse 的 setVec3——它的值由纹理采样决定。
         lightingShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
         lightingShader.setFloat("material.shininess", 64.0f);
 
@@ -207,7 +230,8 @@ int main()
         glm::mat4 model = glm::mat4(1.0f);
         lightingShader.setMat4("model", model);
 
-        // bind diffuse map
+        // 把漫反射贴图绑定到纹理单元 0(对应上面 setInt("material.diffuse", 0))。
+        // glActiveTexture 选单元,glBindTexture 把贴图放到该单元上——fs 采样时就取这张图。
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, diffuseMap);
 
@@ -304,8 +328,11 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
     camera.ProcessMouseScroll(static_cast<float>(yoffset));
 }
 
-// utility function for loading a 2D texture from file
-// ---------------------------------------------------
+// loadTexture() — 把一张图片文件加载成 OpenGL 纹理,返回纹理 ID。
+// 这是第一章里手写的纹理加载流程的封装,后续 lighting demo 都复用它。
+// 参数 path — 图片文件路径
+// 返回      — 纹理对象的 ID(后续 glBindTexture 用)
+// 内部按图片实际通道数(1=灰度、3=RGB、4=RGBA)选择对应的 GL 格式。
 unsigned int loadTexture(char const * path)
 {
     unsigned int textureID;

@@ -32,6 +32,23 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+/**
+ * 方向光(Directional Light)— 像太阳,只有方向、没有位置、不会衰减
+ *
+ * 之前(1~4 章)的光都是"点光源"(有位置)。本节换成方向光:
+ * 假设光源在无限远(如太阳),所有光线平行、方向一致,且距离不影响亮度(无衰减)。
+ * 适合模拟阳光、月光。
+ *
+ * 改动(相对 4.2):
+ *   - struct Light 用 direction 字段替代 position
+ *   - fs 里 lightDir = normalize(-light.direction)(见 fs 注释,为何取反)
+ *   - 无衰减项(无限远,距离无意义)
+ *   - 场景改成 10 个立方体(看不同朝向的面受光差异)
+ *   - 【不画光源立方体】——方向光没有具体位置,画个灯泡没意义(代码注释掉了)
+ *
+ * light.direction = (-0.2, -1, -0.3):光从斜上方照下来(像下午的太阳)。
+ */
+
 int main()
 {
     // glfw: initialize and configure
@@ -197,6 +214,7 @@ int main()
 
         // be sure to activate shader when setting uniforms/drawing objects
         lightingShader.use();
+        // 方向光的方向(光照射的朝向),斜向下 = 光从斜上方来。注意这是"光的去向",fs 里会取反成"片段指向光源"。
         lightingShader.setVec3("light.direction", -0.2f, -1.0f, -0.3f);
         lightingShader.setVec3("viewPos", camera.Position);
 
@@ -244,6 +262,7 @@ int main()
         }
 
 
+        // 方向光没有具体位置,画个光源立方体没意义,所以整个光源渲染在这里被注释掉了。
         // a lamp object is weird when we only have a directional light, don't render the light object
         // lightCubeShader.use();
         // lightCubeShader.setMat4("projection", projection);

@@ -32,6 +32,22 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+/**
+ * 聚光灯(Spotlight,硬边)— 像手电筒,有位置 + 方向 + 锥角
+ *
+ * 聚光灯只照亮"锥形范围内"的物体(手电筒照出一道光锥)。
+ * 本节先做【硬边】版本:锥内全亮、锥外全暗,边缘有明显锯齿(下一节 5.4 改成软边)。
+ *
+ * 新增内容(相对 5.2 点光源):
+ *   - struct Light 加 direction(光朝向)和 cutOff(锥角余弦阈值)
+ *   - 光源跟着相机:position = camera.Position、direction = camera.Front(像玩家举着手电筒)
+ *   - fs 里用点乘算"片段偏离光轴的程度",超出 cutOff 就不照(if/else 硬切)
+ *   - 保留点光源的衰减(距离 + 锥角双重限制)
+ *   - 不画光源立方体(聚光灯在相机处,画立方体会挡视野)
+ *
+ * cutOff = cos(12.5°):用余弦不用角度,是因为点乘结果本就是余弦,直接比较更高效(省去 acos)。
+ */
+
 int main()
 {
     // glfw: initialize and configure
@@ -197,8 +213,10 @@ int main()
 
         // be sure to activate shader when setting uniforms/drawing objects
         lightingShader.use();
+        // 聚光灯跟着相机:位置 = 相机位置,方向 = 相机看向的前方(手电筒效果)
         lightingShader.setVec3("light.position", camera.Position);
         lightingShader.setVec3("light.direction", camera.Front);
+        // cutOff = 内锥角的余弦(12.5°)。用 cos 是因为 fs 里点乘得到的 theta 也是余弦,同单位才能直接比较。
         lightingShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
         lightingShader.setVec3("viewPos", camera.Position);
 

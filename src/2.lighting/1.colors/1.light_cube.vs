@@ -1,3 +1,5 @@
+// 光源立方体的顶点着色器 — 内容与 1.colors.vs 相同(标准 MVP 变换)
+// 光源和物体都是立方体,顶点变换方式一样,所以 vs 完全相同。
 #version 330 core
 layout (location = 0) in vec3 aPos;
 

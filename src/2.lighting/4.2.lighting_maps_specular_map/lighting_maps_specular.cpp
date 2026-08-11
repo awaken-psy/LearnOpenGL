@@ -32,7 +32,25 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-// lighting
+/**
+ * 镜面反射贴图(Specular Map)— 用纹理控制"哪里反光"
+ *
+ * 上一节(4.1)specular 还是单一灰色 vec3,整个表面均匀反光——
+ * 但真实物体往往"部分反光、部分不反光"(比如木箱:铁边框反光,木板不反光)。
+ * 本节用一张【镜面反射贴图】(specular map)解决这个问题。
+ *
+ * specular map 是张黑白图:白色像素 = 高反光,黑色像素 = 不反光。
+ * 把它套在物体上,fs 采样后只有白色区域(边框)会出现高光,木板区域保持哑光。
+ *
+ * 新增内容(相对 4.1):
+ *   - 多加载一张 specular map(container2_specular.png)
+ *   - struct Material 里 specular 也从 vec3 改成 sampler2D
+ *   - fs 里 specular = ... * texture(material.specular, TexCoords).rgb
+ *   - cpp 把 specular map 绑定到【纹理单元 1】
+ *
+ * 一个细节:specular map 是黑白图,代码里仍按 RGB 采样(.rgb),黑白反映在亮度上。
+ */
+
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
 int main()
@@ -157,13 +175,14 @@ int main()
     // load textures (we now use a utility function to keep the code more organized)
     // -----------------------------------------------------------------------------
     unsigned int diffuseMap = loadTexture(FileSystem::getPath("resources/textures/container2.png").c_str());
+    // 新增:第二张贴图——镜面反射贴图(黑白图)。白色 = 该处反光,黑色 = 该处哑光。
     unsigned int specularMap = loadTexture(FileSystem::getPath("resources/textures/container2_specular.png").c_str());
 
     // shader configuration
     // --------------------
     lightingShader.use();
-    lightingShader.setInt("material.diffuse", 0);
-    lightingShader.setInt("material.specular", 1);
+    lightingShader.setInt("material.diffuse", 0);   // diffuse 贴图 → 单元 0
+    lightingShader.setInt("material.specular", 1);   // specular 贴图 → 单元 1(两张图各占一个单元)
 
 
     // render loop
@@ -195,7 +214,8 @@ int main()
         lightingShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
         lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 
-        // material properties
+        // 材质:diffuse 和 specular 都是纹理了,只剩 shininess 一个标量属性。
+        //   (diffuse/specular 的值由 fs 采样纹理决定,这里不用设)
         lightingShader.setFloat("material.shininess", 64.0f);
 
         // view/projection transformations
@@ -208,12 +228,12 @@ int main()
         glm::mat4 model = glm::mat4(1.0f);
         lightingShader.setMat4("model", model);
 
-        // bind diffuse map
+        // 绑定两张贴图到各自的纹理单元(和 setInt 的编号一一对应):
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, diffuseMap);
+        glBindTexture(GL_TEXTURE_2D, diffuseMap);    // 单元 0 → material.diffuse
         // bind specular map
         glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, specularMap);
+        glBindTexture(GL_TEXTURE_2D, specularMap);   // 单元 1 → material.specular
 
         // render the cube
         glBindVertexArray(cubeVAO);

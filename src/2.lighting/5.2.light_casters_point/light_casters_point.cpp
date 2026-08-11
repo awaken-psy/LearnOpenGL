@@ -32,7 +32,24 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-// lighting
+/**
+ * 点光源(Point Light)— 有位置,且距离越远越暗(衰减)
+ *
+ * 之前的光都没考虑距离(无论多远亮度一样),不真实。本节给点光源加【距离衰减】:
+ * 离光源越远的物体越暗,符合"灯光照亮范围有限"的直觉(灯泡照不亮远处)。
+ *
+ * 新增内容(相对 4.2):
+ *   - struct Light 加 constant / linear / quadratic 三个衰减系数
+ *   - fs 里 attenuation = 1.0 / (constant + linear*距离 + quadratic*距离²)
+ *   - ambient/diffuse/specular 都乘 attenuation(整体随距离变暗)
+ *
+ * 衰减公式三项的含义:
+ *   constant(常数项)— 通常设 1,保证距离=0 时衰减=1(不衰减)
+ *   linear(线性项)— 近距离主导衰减
+ *   quadratic(二次项)— 远距离主导衰减(物理上光强本应按距离平方衰减)
+ * 这里用 1.0 / 0.09 / 0.032 是教程给的"约 7m 范围"经验值,不同范围有不同配比表。
+ */
+
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
 int main()
@@ -207,9 +224,10 @@ int main()
         lightingShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
         lightingShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
         lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-        lightingShader.setFloat("light.constant", 1.0f);
-        lightingShader.setFloat("light.linear", 0.09f);
-        lightingShader.setFloat("light.quadratic", 0.032f);
+        // 衰减三个系数(经验值,对应约 7m 照射范围):
+        lightingShader.setFloat("light.constant", 1.0f);    // 常数项(保证距离 0 时不衰减)
+        lightingShader.setFloat("light.linear", 0.09f);     // 线性项
+        lightingShader.setFloat("light.quadratic", 0.032f); // 二次项(远距离主导)
 
         // material properties
         lightingShader.setFloat("material.shininess", 32.0f);

@@ -1,3 +1,23 @@
+/**
+ * 练习 2.4 — 在观察空间(View Space)做光照
+ *
+ * 之前 2.1/2.2 的光照都在【世界空间】算(FragPos、lightPos 都是世界坐标)。
+ * 本练习改成在【观察空间】算:把所有位置和法线先乘 view 矩阵,转到"以相机为原点"的空间。
+ *
+ * 好处:相机永远在观察空间的原点 (0,0,0),所以 viewDir = -FragPos,不用再传 viewPos uniform。
+ * 代价:概念上绕一点,每帧 view 变了法线矩阵也要跟着重算。
+ *
+ * ⚠ 下方是 GLSL 着色器源码(不是 C++),用 #if 0 屏蔽,仅供阅读对照。
+ *    要运行:分别存成 .vs / .fs 替换 2.2 的 shader 即可。
+ *
+ * 关键区别(对比 2.2):
+ *   - vs:FragPos = view * model * aPos(观察空间位置),而非世界空间
+ *   - 法线用 transpose(inverse(view*model)) 变换(改成观察空间)
+ *   - lightPos 也乘 view 转到观察空间,通过新增的 out 变量 LightPos 传给 fs
+ *   - fs:viewDir = -FragPos(眼睛在原点,视线方向 = 原点 - 片段位置 = -片段位置)
+ */
+
+#if 0
 // Vertex shader:
 // ================
 #version 330 core
@@ -39,21 +59,22 @@ void main()
 {
     // ambient
     float ambientStrength = 0.1;
-    vec3 ambient = ambientStrength * lightColor;    
-    
-     // diffuse 
+    vec3 ambient = ambientStrength * lightColor;
+
+     // diffuse
     vec3 norm = normalize(Normal);
     vec3 lightDir = normalize(LightPos - FragPos);
     float diff = max(dot(norm, lightDir), 0.0);
     vec3 diffuse = diff * lightColor;
-    
+
     // specular
     float specularStrength = 0.5;
     vec3 viewDir = normalize(-FragPos); // the viewer is always at (0,0,0) in view-space, so viewDir is (0,0,0) - Position => -Position
-    vec3 reflectDir = reflect(-lightDir, norm);  
+    vec3 reflectDir = reflect(-lightDir, norm);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
-    vec3 specular = specularStrength * spec * lightColor; 
-    
+    vec3 specular = specularStrength * spec * lightColor;
+
     vec3 result = (ambient + diffuse + specular) * objectColor;
     FragColor = vec4(result, 1.0);
 }
+#endif

@@ -1,10 +1,22 @@
+// 物体的片段着色器 — ⭐ 本课核心:光照颜色公式
+//
+// 物体最终颜色 = 光源颜色 × 物体反射率(逐分量相乘)
+//   白光(1,1,1) × 珊瑚色(1, 0.5, 0.31) = (1, 0.5, 0.31) → 珊瑚色
+//   红光(1,0,0) × 珊瑚色(1, 0.5, 0.31) = (1, 0, 0)    → 纯红(绿蓝分量被吃掉)
+//
+// 这里的 objectColor 本质不是"颜色",而是"物体对各色光的反射率":
+// 物理学上,绿叶显绿是因为它反射绿光、吸收红蓝光。
+// 注意:这一节还没有任何明暗变化,整个物体是均匀一色的——
+// 下一节(漫反射)才会根据光照角度让背光面变暗。
 #version 330 core
 out vec4 FragColor;
-  
-uniform vec3 objectColor;
-uniform vec3 lightColor;
+
+uniform vec3 objectColor;  // 物体对各色光的反射率(0=全吸收, 1=全反射)
+uniform vec3 lightColor;   // 光源发出的颜色(各色光的强度)
 
 void main()
 {
+    // vec3 相乘是逐分量相乘(Hadamard 积):(r1,g1,b1)*(r2,g2,b2) = (r1*r2, g1*g2, b1*b2)
+    // 末尾的 1.0 是 alpha(不透明度),vec4 需要 4 个分量。
     FragColor = vec4(lightColor * objectColor, 1.0);
 }

@@ -32,7 +32,22 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-// lighting
+/**
+ * 练习 4.4 — 自发光贴图(Emission Map)
+ *
+ * 新增第三张贴图:emission(自发光)。物体某些部分自己会发光(不依赖外部光源),
+ * 比如木箱上贴着会发光的图案(matrix.jpg 像数字雨矩阵特效)。
+ *
+ * 新增内容(相对 4.2):
+ *   - 多加载一张 emission map(matrix.jpg)
+ *   - struct Material 加 sampler2D emission 字段
+ *   - fs 里 result = ambient + diffuse + specular + emission(自发光直接加进去,不受光照影响)
+ *   - cpp 绑定 emission 贴图到纹理单元 2
+ *
+ * 直觉:emission 是"物体自己发的光",和外部光源无关——即使在暗面也会亮。
+ *       实际渲染里常用于发光体(屏幕、岩浆、魔法符文),配合后面的 bloom 效果更佳。
+ */
+
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
 int main()
@@ -158,6 +173,7 @@ int main()
     // -----------------------------------------------------------------------------
     unsigned int diffuseMap  = loadTexture(FileSystem::getPath("resources/textures/container2.png").c_str());
     unsigned int specularMap = loadTexture(FileSystem::getPath("resources/textures/container2_specular.png").c_str());
+    // 新增:第三张贴图——自发光贴图(数字雨图案),物体自己发光的部分。
     unsigned int emissionMap = loadTexture(FileSystem::getPath("resources/textures/matrix.jpg").c_str());
 
     // shader configuration
@@ -165,7 +181,7 @@ int main()
     lightingShader.use();
     lightingShader.setInt("material.diffuse", 0);
     lightingShader.setInt("material.specular", 1);
-    lightingShader.setInt("material.emission", 2);
+    lightingShader.setInt("material.emission", 2);   // 三张贴图分别绑定到单元 0/1/2
 
 
     // render loop

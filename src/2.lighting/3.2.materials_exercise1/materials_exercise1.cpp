@@ -30,7 +30,16 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-// lighting
+/**
+ * 材质练习 3.2 — 换一组材质参数(青绿金属感)
+ *
+ * 和 3.1 的区别:光源固定为纯白光(ambient/diffuse/specular 都 (1,1,1),强度拉满),
+ * 改成调材质参数,让同一个立方体呈现另一种质感——这里是一组类似青绿矿石/铜锈的数值。
+ *
+ * 体会:fs 公式完全不变(和 3.1 相同),只改 cpp 里传的 material.* 数值,
+ *      物体外观就完全不同了——这就是"材质与光照解耦"的好处。
+ */
+
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
 int main()
@@ -178,12 +187,13 @@ int main()
         lightingShader.setVec3("light.position", lightPos);
         lightingShader.setVec3("viewPos", camera.Position);
 
-        // light properties
+        // 光源:纯白光,三通道全拉满(本练习焦点在材质,光源保持最简)
         lightingShader.setVec3("light.ambient", 1.0f, 1.0f, 1.0f); // note that all light colors are set at full intensity
         lightingShader.setVec3("light.diffuse", 1.0f, 1.0f, 1.0f);
         lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 
-        // material properties
+        // 材质:一组青绿色数值(类似铜锈/绿松石),呈现和 3.1 珊瑚色完全不同的质感。
+        //   diffuse (0, 0.51, 0.51) — 青绿色主色:只反射绿/蓝光,几乎不反红光。
         lightingShader.setVec3("material.ambient", 0.0f, 0.1f, 0.06f);
         lightingShader.setVec3("material.diffuse", 0.0f, 0.50980392f, 0.50980392f);
         lightingShader.setVec3("material.specular", 0.50196078f, 0.50196078f, 0.50196078f);

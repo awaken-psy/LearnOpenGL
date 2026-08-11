@@ -30,7 +30,24 @@ bool firstMouse = true;
 float deltaTime = 0.0f; 
 float lastFrame = 0.0f;
 
-// lighting
+/**
+ * 材质(Material)— 把物体的反光属性打包成结构体
+ *
+ * 之前(2.x)物体的反光参数(objectColor、specularStrength、shininess)是散落的独立 uniform。
+ * 本节把它们打包成 GLSL 的 struct,并额外把【光源属性】也分离出来——这样物体和光源
+ * 各管各的参数,清晰且可复用(后面换不同材质、不同光源只改结构体成员即可)。
+ *
+ * 新增内容(相对 2.2):
+ *   - fs 里定义 struct Material { ambient, diffuse, specular, shininess }
+ *   - fs 里定义 struct Light   { position, ambient, diffuse, specular }
+ *   - 光照公式改成:light.Xxx * material.Xxx(光源强度 × 物体反射率)
+ *   - cpp 里用 "material.diffuse" 这种【结构体.成员】语法设置 uniform
+ *   - 顺带让光源颜色随时间变化(sin),直观感受不同色光打在材质上的效果
+ *
+ * 关键认知:ambient/diffuse/specular 三个分量现在各有"光源版"和"材质版",
+ *   最终 = 光源发出的对应强度 × 物体对该分量的反射率。
+ */
+
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
 int main()
@@ -175,21 +192,26 @@ int main()
 
         // be sure to activate shader when setting uniforms/drawing objects
         lightingShader.use();
-        lightingShader.setVec3("light.position", lightPos);
+        lightingShader.setVec3("light.position", lightPos);   // 光源位置(放进 struct Light 的 position 字段)
         lightingShader.setVec3("viewPos", camera.Position);
 
-        // light properties
+        // 光源属性——用 sin 让光源颜色随时间在 RGB 上各自波动,呈现彩色光。
         glm::vec3 lightColor;
-        lightColor.x = static_cast<float>(sin(glfwGetTime() * 2.0));
-        lightColor.y = static_cast<float>(sin(glfwGetTime() * 0.7));
-        lightColor.z = static_cast<float>(sin(glfwGetTime() * 1.3));
+        lightColor.x = static_cast<float>(sin(glfwGetTime() * 2.0));   // R,频率最快
+        lightColor.y = static_cast<float>(sin(glfwGetTime() * 0.7));   // G
+        lightColor.z = static_cast<float>(sin(glfwGetTime() * 1.3));   // B
+        // 漫反射用 lightColor 的 0.5 倍(降低强度),环境光再降到它的 0.2 倍。
+        // 一般规律:ambient < diffuse < specular 强度——高光最亮,环境光只是微弱底光。
         glm::vec3 diffuseColor = lightColor   * glm::vec3(0.5f); // decrease the influence
         glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f); // low influence
+        // 用 "light.成员" 设置结构体 uniform(名字必须和 fs 里 struct Light 的字段一致)。
         lightingShader.setVec3("light.ambient", ambientColor);
         lightingShader.setVec3("light.diffuse", diffuseColor);
-        lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+        lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);  // 高光保持白色全强度
 
-        // material properties
+        // 材质属性——珊瑚色物体,半反光(specular 灰色 0.5 而非白色 1.0,说明不是完全反光面)。
+        //   ambient/diffuse 都用珊瑚色 (1, 0.5, 0.31):物体对珊瑚色光反射最强。
+        //   shininess=32:高光锐度(越大高光越集中;2.2 里是写死的 32,现在作为材质属性可调)。
         lightingShader.setVec3("material.ambient", 1.0f, 0.5f, 0.31f);
         lightingShader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
         lightingShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f); // specular lighting doesn't have full effect on this object's material
