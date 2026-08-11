@@ -200,6 +200,7 @@ int main()
         lightColor.x = static_cast<float>(sin(glfwGetTime() * 2.0));   // R,频率最快
         lightColor.y = static_cast<float>(sin(glfwGetTime() * 0.7));   // G
         lightColor.z = static_cast<float>(sin(glfwGetTime() * 1.3));   // B
+        
         // 漫反射用 lightColor 的 0.5 倍(降低强度),环境光再降到它的 0.2 倍。
         // 一般规律:ambient < diffuse < specular 强度——高光最亮,环境光只是微弱底光。
         glm::vec3 diffuseColor = lightColor   * glm::vec3(0.5f); // decrease the influence

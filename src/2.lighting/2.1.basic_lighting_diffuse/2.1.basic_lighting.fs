@@ -36,11 +36,8 @@ void main()
     vec3 ambient = ambientStrength * lightColor;
 
     // ---- 漫反射 diffuse ----
-    // normalize():把向量缩成单位长度(长度=1)。必须做——vs 传来的法线经过插值后,
-    //              长度不再是 1,而点乘要求两边都是单位向量才等于"余弦"。
     vec3 norm = normalize(Normal);
     // lightDir:从片段指向光源的方向(注意是 lightPos - FragPos,不是反过来)。
-    //           同样归一化,保证点乘是余弦。
     vec3 lightDir = normalize(lightPos - FragPos);
     // ⭐ 核心:点乘 norm·lightDir = cos(夹角)。
     //   夹角 0°(光正对着面) → dot=1 → 最亮

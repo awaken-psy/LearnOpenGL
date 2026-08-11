@@ -193,6 +193,7 @@ int main()
         lightingShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
         lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
         lightingShader.setVec3("lightPos", lightPos);
+        
         // 新增:把相机位置传给 fs。镜面高光依赖【观察方向】,必须知道眼睛在哪。
         // camera.Position 是 Camera 类的公开成员(世界空间坐标)。
         lightingShader.setVec3("viewPos", camera.Position);

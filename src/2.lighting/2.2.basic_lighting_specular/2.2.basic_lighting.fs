@@ -39,7 +39,7 @@ void main()
 
     // ---- 镜面反射 specular(本节新增)----
     // specularStrength:高光强度系数,比漫反射小(0.5),因为高光只是个亮点,不该盖过整体。
-    float specularStrength = 0.5;
+    float specularStrength = 1.0;
     // viewDir:从片段指向相机(眼睛)的方向。
     vec3 viewDir = normalize(viewPos - FragPos);
     // reflect(I, N):求入射光 I 沿法线 N 的反射方向。
@@ -49,7 +49,7 @@ void main()
     // ⭐ 高光强度 = (视线与反射方向的夹角余弦)^32。
     //   max(·,0):背光面不算高光。
     //   pow(..., 32):把余弦值"锐化",只有夹角很小时才亮,形成小亮斑(32 即 shininess)。
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 8);
     vec3 specular = specularStrength * spec * lightColor;
 
     // Phong 完整公式:三项相加,再乘物体反射率

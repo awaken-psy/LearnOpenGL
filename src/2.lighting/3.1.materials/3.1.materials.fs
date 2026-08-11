@@ -27,7 +27,6 @@ struct Material {
 // 光源结构体——描述"光源的属性",与具体物体无关。
 struct Light {
     vec3 position;
-
     vec3 ambient;    // 环境光强度(通常很弱)
     vec3 diffuse;    // 漫反射光强度(主光色)
     vec3 specular;   // 镜面光强度(高光,通常接近白)

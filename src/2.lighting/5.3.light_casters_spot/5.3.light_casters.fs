@@ -66,6 +66,7 @@ void main()
         float distance    = length(light.position - FragPos);
         float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
         // ambient 不乘衰减:否则远处锥内反而比锥外(只有 ambient)还暗,不合理。
+        
         diffuse  *= attenuation;
         specular *= attenuation;
 

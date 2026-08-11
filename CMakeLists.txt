@@ -102,6 +102,8 @@ set(2.lighting
     1.colors
     2.1.basic_lighting_diffuse
     2.2.basic_lighting_specular
+    2.4.basic_lighting_exercise2
+    2.5.basic_lighting_exercise3
     3.1.materials
     3.2.materials_exercise1
     4.1.lighting_maps_diffuse_map
@@ -223,13 +225,10 @@ function(create_project_from_sources chapter demo)
     add_executable(${NAME} ${SOURCE})
     target_link_libraries(${NAME} ${LIBS})
     if(MSVC)
-		target_compile_options(${NAME} PRIVATE /std:c++17 /MP)
+		target_compile_options(${NAME} PRIVATE /std:c++17 /MP /utf-8)
         target_link_options(${NAME} PUBLIC /ignore:4099)
     else()
 		target_compile_options(${NAME} PRIVATE -Wno-pragma-pack)
-        if(WIN32)
-            target_link_options(${NAME} PUBLIC -Wl,/ignore:4099)
-        endif()
     endif(MSVC)
     if(WIN32)
         set_target_properties(${NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${chapter}")

@@ -22,6 +22,7 @@ err()   { echo -e "${RED}[ERR]${NC}   $*" >&2; }
 detect_glm() {
   for candidate in \
     "${GLM_ROOT_DIR:-}" \
+    "$REPO_ROOT/includes" \
     "E:/tools/scoop/apps/glm/current/include" \
     "/e/tools/scoop/apps/glm/current/include" \
     "/usr/local/include" \
@@ -34,7 +35,16 @@ detect_glm() {
   return 1
 }
 detect_generator() {
-  [[ "$OSTYPE" == msys || "$OSTYPE" == win32 || -n "${WINDIR:-}" ]] && echo "MinGW Makefiles" || echo "Unix Makefiles"
+  if [[ "$OSTYPE" == msys || "$OSTYPE" == win32 || -n "${WINDIR:-}" ]]; then
+    # 优先用 VS 2022 (兼容 MSVC 编译的 .lib)，找不到才 fallback 到 MinGW
+    if command -v cmake &>/dev/null && cmake --help 2>/dev/null | grep -q "Visual Studio 17 2022"; then
+      echo "Visual Studio 17 2022"
+    else
+      echo "MinGW Makefiles"
+    fi
+  else
+    echo "Unix Makefiles"
+  fi
 }
 
 # ---------- 索引 ----------
@@ -139,8 +149,10 @@ cmd_run() {
   local ch="${t%%__*}"
   local exe_dir="$REPO_ROOT/bin/$ch"
   local exe="$exe_dir/${t}"
-  [[ -f "$exe.exe" ]] && exe="$exe.exe"
   cmd_build "$t"
+  # VS 生成器会把 exe 放到 Debug/ 子目录，编译后再检测路径
+  [[ -f "$exe_dir/Debug/${t}.exe" ]] && exe_dir="$exe_dir/Debug" && exe="$exe_dir/${t}"
+  [[ -f "$exe.exe" ]] && exe="$exe.exe"
   info "运行: $exe"
   # 切到 exe 所在目录，shader 文件靠相对路径查找
   cd "$exe_dir" && "$exe"
