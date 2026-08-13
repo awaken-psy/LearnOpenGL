@@ -39,6 +39,26 @@ float lastFrame = 0.0f;
 // meshes
 unsigned int planeVAO;
 
+/**
+ * 阴影映射三部曲(2/3)——基础阴影:把深度图用起来
+ *
+ * 上一节(3.1.1)只画了深度图。本节真正"投影"出阴影:第二趟正常渲染场景时,
+ * 每个片段都问一句"我从光源看,前面有没有更近的东西挡我?"——有就置阴影。
+ *
+ * 本节新增(相对 3.1.1):
+ *   - 【第二趟渲染】:用普通相机视角画场景,采样深度图判断阴影。
+ *   - shadow_mapping.vs 额外输出【FragPosLightSpace】= lightSpaceMatrix × FragPos,
+ *     把每个片段的世界坐标也变换到光源空间,fs 才好和深度图比对。
+ *   - shadow_mapping.fs 的核心是【ShadowCalculation】函数:
+ *       透视除法 → 把 [-1,1] 映射到 [0,1] → 用 (projCoords.xy) 采样 shadowMap 得到
+ *       "光源能看到的最近深度",和"当前片段的深度"比,当前更深 → 在阴影里。
+ *   - 用 Blinn-Phong(halfway 向量)算光照,阴影区域只保留环境光。
+ *
+ * ⚠ 本节【故意不加 bias】:你会看到明显的【阴影失真 shadow acne】(亮暗条纹),
+ *    这是深度图精度+片段自比较导致的。下一节(3.1.3)用 bias 修复。
+ *
+ * 深度FBO 的搭建和 3.1.1 完全一样,此处不重复注释。
+ */
 int main()
 {
     // glfw: initialize and configure
@@ -195,8 +215,11 @@ int main()
         glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // 2. render scene as normal using the generated depth/shadow map  
+        // 2. render scene as normal using the generated depth/shadow map
         // --------------------------------------------------------------
+        // ⭐【第二趟:正常渲染场景,同时按深度图判断阴影】。
+        //   用相机的透视投影 + 相机视图,把 lightSpaceMatrix 也传给 shader,
+        //   vs 才能把每个片段变换到光源空间,fs 才能和深度图比对。
         shader.use();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
@@ -206,6 +229,7 @@ int main()
         shader.setVec3("viewPos", camera.Position);
         shader.setVec3("lightPos", lightPos);
         shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+        // 两个纹理:0 号槽=物体漫反射贴图(wood),1 号槽=刚烤好的深度图 depthMap。
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, woodTexture);
         glActiveTexture(GL_TEXTURE1);

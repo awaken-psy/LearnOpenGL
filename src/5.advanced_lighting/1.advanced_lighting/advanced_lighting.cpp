@@ -22,7 +22,10 @@ unsigned int loadTexture(const char *path);
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
+// blinn:当前是否启用 Blinn-Phong 高光(按 B 切换)。false 时退回第2章 Phong 高光做对照。
 bool blinn = false;
+// blinnKeyPressed:【边沿检测】标志,记录上帧 B 是否已按下。配合 processInput 实现
+//   「按一下翻一次」:避免按住 B 的几十帧里 blinn 每帧疯狂翻转。
 bool blinnKeyPressed = false;
 
 // camera
@@ -35,6 +38,29 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+/**
+ * Blinn-Phong 光照模型 —— Phong 高光(第2章)的改进版
+ *
+ * 回顾 Phong 高光:R = reflect(-L, N);spec = pow(max(dot(V, R), 0), shininess)
+ *   需要先算反射向量 R,再和视线 V 比夹角。
+ *
+ * 【Blinn-Phong】改进:不再求反射向量 R,改求【半程向量 halfway vector】
+ *   H = normalize(L + V)       (入射方向 L 与视线方向 V 相加归一化,即「夹角中分线」方向)
+ *   spec = pow(max(dot(N, H), 0), shininess)
+ * 直觉:H 指向「光和眼睛中间」;表面法线 N 越接近 H,高光越强。
+ * 好处:省一次 reflect、更贴近真实物理(微表面理论的基础)、高光边缘过渡更柔。
+ *
+ * ⚠ 视觉匹配:同样的高光锐度,Blinn-Phong 的 shininess 要比 Phong 大很多
+ *   (本 demo:32 vs 8)。因为 N·H 的夹角约为 V·R 的一半,余弦衰减更慢,
+ *   必须用更大的指数才能把高光收窄到相近大小。运行时按 B 键切换对比。
+ *
+ * 新增内容(相对第2章 Phong):
+ *   - vs/fs 用【interface block VS_OUT】打包传 FragPos/Normal/TexCoords(第4章 Advanced GLSL 学过,提一句)
+ *   - fs 里按 uniform blinn 切换两套高光公式,边运行边对比
+ *   - blinnKeyPressed 实现「按一下切换一次」的【边沿检测】,按住 B 不会连续翻转
+ *
+ * 结论:用 H 替代 R,公式更简、更准、更快 —— 现代引擎默认都用 Blinn-Phong。
+ */
 int main()
 {
     // glfw: initialize and configure
@@ -151,6 +177,7 @@ int main()
         // set light uniforms
         shader.setVec3("viewPos", camera.Position);
         shader.setVec3("lightPos", lightPos);
+        // 把高光模式开关传给 fs:fs 里 if(blinn) 走半程向量 H,else 走反射向量 R(第2章原版)。
         shader.setInt("blinn", blinn);
         // floor
         glBindVertexArray(planeVAO);
@@ -158,6 +185,7 @@ int main()
         glBindTexture(GL_TEXTURE_2D, floorTexture);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
+        // 控制台打印当前模式,方便对着画面看对比(不影响渲染)。
         std::cout << (blinn ? "Blinn-Phong" : "Phong") << std::endl;
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
@@ -191,12 +219,16 @@ void processInput(GLFWwindow *window)
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
 
-    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS && !blinnKeyPressed) 
+    // 【边沿检测】按一下 B 切换一次 blinn。关键是第二个标志 blinnKeyPressed:
+    //   按下瞬间(PRESS)且上帧未按(!blinnKeyPressed)→ 翻转一次,标记已按
+    //   一直按住 → PRESS 但标志已 true → 不再翻转
+    //   松开 → RELEASE → 清除标志,允许下一次切换
+    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_PRESS && !blinnKeyPressed)
     {
         blinn = !blinn;
         blinnKeyPressed = true;
     }
-    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_RELEASE) 
+    if (glfwGetKey(window, GLFW_KEY_B) == GLFW_RELEASE)
     {
         blinnKeyPressed = false;
     }

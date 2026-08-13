@@ -1,3 +1,5 @@
+// HDR equirectangular → cubemap 转换 —— 【与 2.2.1.equirectangular_to_cubemap.fs 完全相同】。
+// 详见 2.1.1 注释(invAtan = (1/(2π), 1/π))。
 #version 330 core
 out vec4 FragColor;
 in vec3 WorldPos;

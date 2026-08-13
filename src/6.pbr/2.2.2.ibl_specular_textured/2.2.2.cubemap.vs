@@ -1,3 +1,4 @@
+// 立方体顶点着色器 —— 【与 2.2.1.cubemap.vs 完全相同】。capture pipeline 共用。
 #version 330 core
 layout (location = 0) in vec3 aPos;
 

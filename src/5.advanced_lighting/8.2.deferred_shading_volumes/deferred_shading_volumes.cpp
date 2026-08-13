@@ -34,6 +34,26 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+/**
+ * 延迟渲染 + 光体积剔除(Light Volumes)— 在 8.1 基础上【提前剔除影响不到的光源】
+ *
+ * 8.1 的问题:lighting pass 对每个 fragment 都循环全部 32 个光源,即使某个光源离
+ * 这个 fragment 很远、衰减后贡献几乎是 0,照样得跑完整循环 —— 浪费算力。
+ *
+ * 8.2 的优化思路:每个光源预先算一个【影响半径 Radius】,shader 里 if(distance < Radius)
+ * 才算光照,超出半径的光源直接跳过。32 个光源里,通常只有少数几个能影响到当前 fragment。
+ *
+ * ⚠ 本 demo 没有用真正的【模板体积 stencil volume】(书里讨论过的更高级方案),
+ *    只是在 fs 循环里加了个 if-branch 简化版,但效果和思路是相通的。
+ *
+ * 相对 8.1 的代码改动:
+ *   - Light 结构体多了 Radius 字段
+ *   - C++ 用求根公式反解衰减方程,算出"亮度降到阈值时对应的距离"= Radius
+ *   - lighting fs 里 for 循环套一层 if(distance < Radius)
+ *
+ * 其余(G-Buffer MRT、geometry pass、深度 blit、光球绘制)与 8.1 完全一致,不再重复注释。
+ */
+
 int main()
 {
     // glfw: initialize and configure
@@ -228,6 +248,17 @@ int main()
             const float quadratic = 1.8f;
             shaderLightingPass.setFloat("lights[" + std::to_string(i) + "].Linear", linear);
             shaderLightingPass.setFloat("lights[" + std::to_string(i) + "].Quadratic", quadratic);
+            // ⭐【反解衰减方程求光体积半径】核心思路:
+            //   衰减公式:attenuation = 1 / (constant + linear·d + quadratic·d²)
+            //   我们要找"亮度低到可以忽略"时的距离 d,这个 d 就是 Radius。
+            //   "可以忽略"的阈值:(256.0/5.0) * maxBrightness —— 灵感是人眼对 5/256 ≈ 0.02
+            //   以下的亮度基本无感,所以让衰减贡献等于这个阈值时反解 d。
+            //
+            //   把 1/(c+l·d+q·d²) = (256/5)·maxB 变形,得到关于 d 的一元二次方程:
+            //     q·d² + l·d + (c - (256/5)·maxB) = 0
+            //   用求根公式(取较大根):
+            //     d = (-l + sqrt(l² - 4·q·(c - (256/5)·maxB))) / (2·q)
+            //   这就是下面这行。maxBrightness 取光源 RGB 里最大通道(最亮的分量决定可见距离)。
             // then calculate radius of light volume/sphere
             const float maxBrightness = std::fmaxf(std::fmaxf(lightColors[i].r, lightColors[i].g), lightColors[i].b);
             float radius = (-linear + std::sqrt(linear * linear - 4 * quadratic * (constant - (256.0f / 5.0f) * maxBrightness))) / (2.0f * quadratic);

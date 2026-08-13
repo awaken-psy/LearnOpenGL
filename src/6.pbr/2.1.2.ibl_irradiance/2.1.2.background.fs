@@ -1,3 +1,5 @@
+// 天空盒片段着色器 —— 【与 2.1.1.background.fs 相同】。详见 2.1.1 注释。
+// 采样 envCubemap + Reinhard tonemap + gamma 校正。
 #version 330 core
 out vec4 FragColor;
 in vec3 WorldPos;

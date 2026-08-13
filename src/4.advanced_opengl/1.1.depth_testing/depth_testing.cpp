@@ -94,7 +94,7 @@ int main()
     // ⭐ 关键点：GL_ALWAYS 让所有片段都通过深度测试，等同于禁用深度测试
     // 这意味着后绘制的物体（如地板）会覆盖先绘制的物体（如箱子），
     // 即使地板在 3D 空间中位于箱子的后方。正常应使用 GL_LESS。
-    glDepthFunc(GL_ALWAYS); // always pass the depth test (same effect as glDisable(GL_DEPTH_TEST))
+    glDepthFunc(GL_ALWAYS); 
 
     // build and compile shaders
     // -------------------------
@@ -232,6 +232,7 @@ int main()
         model = glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f));
         shader.setMat4("model", model);
         glDrawArrays(GL_TRIANGLES, 0, 36);
+        
         // floor
         glBindVertexArray(planeVAO);
         glBindTexture(GL_TEXTURE_2D, floorTexture);

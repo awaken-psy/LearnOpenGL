@@ -40,6 +40,25 @@ float ourLerp(float a, float b, float f)
     return a + f * (b - a);
 }
 
+/**
+ * SSAO 屏幕空间环境光遮蔽(Screen-Space Ambient Occlusion)— 本章最复杂的 demo,4 个 pass
+ *
+ * 问题:延迟渲染的环境光(ambient)是固定常数,角落/缝隙处和开阔处一样亮,显得"飘"。
+ * SSAO 思路:对每个 fragment,在它周围【半球】内撒一把采样点,看这些采样点是否被几何
+ * 遮挡。被遮挡越多 → 这个 fragment 越像"角落" → 环境光越暗。结果是接触阴影般的真实感。
+ *
+ * ⭐ 4 个 pass(比 8.1 多出 SSAO + Blur 两个 pass):
+ *   1. Geometry pass:把场景的【view space 位置/法线/颜色】写入 G-Buffer(3 张 MRT + 深度)
+ *      注意这里用【view space】不是世界空间!后面光照在 view space 算。
+ *   2. SSAO pass:读 G-Buffer,用 64 个半球采样点 + 4×4 噪声纹理算每个像素的遮蔽因子,
+ *      输出到单通道(GL_RED)纹理。这一步产生噪点,需要 blur。
+ *   3. Blur pass:4×4 box 模糊 SSAO 纹理,去噪。
+ *   4. Lighting pass:标准延迟 Blinn-Phong,但 ambient 项乘上模糊后的 AO 因子。
+ *
+ * ⚠ view space 是关键:G-Buffer 存 view space 位置,光照 pass 里相机在原点(0,0,0),
+ *   所以 viewDir = normalize(-FragPos);光源也要从世界坐标转成 view 坐标再传入。
+ */
+
 int main()
 {
     // glfw: initialize and configure
@@ -136,13 +155,16 @@ int main()
         std::cout << "Framebuffer not complete!" << std::endl;
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    // also create framebuffer to hold SSAO processing stage 
+    // ⭐ SSAO 专用的两个 FBO —— 只存【单通道(GL_RED)】的遮蔽因子,不需要 RGBA。
+    //   AO 是一个 [0,1] 标量(0=完全遮挡,1=无遮挡),用 GL_RED + GL_FLOAT 一通道足矣。
+    // also create framebuffer to hold SSAO processing stage
     // -----------------------------------------------------
     unsigned int ssaoFBO, ssaoBlurFBO;
     glGenFramebuffers(1, &ssaoFBO);  glGenFramebuffers(1, &ssaoBlurFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, ssaoFBO);
     unsigned int ssaoColorBuffer, ssaoColorBufferBlur;
     // SSAO color buffer
+    //   glTexImage2D 内部格式 GL_RED + 数据格式 GL_RED + GL_FLOAT:单通道浮点纹理。
     glGenTextures(1, &ssaoColorBuffer);
     glBindTexture(GL_TEXTURE_2D, ssaoColorBuffer);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, SCR_WIDTH, SCR_HEIGHT, 0, GL_RED, GL_FLOAT, NULL);
@@ -163,32 +185,42 @@ int main()
         std::cout << "SSAO Blur Framebuffer not complete!" << std::endl;
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    // generate sample kernel
+    // ⭐ 生成 SSAO 的【半球采样核】64 个采样点 —— 算每个 fragment 遮蔽的核心数据
     // ----------------------
     std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // generates random floats between 0.0 and 1.0
     std::default_random_engine generator;
     std::vector<glm::vec3> ssaoKernel;
     for (unsigned int i = 0; i < 64; ++i)
     {
+        // 在立方体 [-1,1]³ 内随机取点,然后归一化到球面,再缩放到半球壳内。
+        //   z 分量用 randomFloats()(0~1)而不是 2·-1:保证采样点都在 +z 半球(朝法线方向)。
         glm::vec3 sample(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, randomFloats(generator));
         sample = glm::normalize(sample);
         sample *= randomFloats(generator);
         float scale = float(i) / 64.0f;
 
+        // ⭐ 让采样点分布【更多靠中心,更少靠边缘】:scale = lerp(0.1, 1, t²)
+        //   t = i/64 从 0 到 1,t² 让分布偏向小值;越靠后的采样点 scale 才接近 1。
+        //   直觉:离 fragment 越近的采样点对遮蔽贡献越大,所以密集分布在中心更合理。
         // scale samples s.t. they're more aligned to center of kernel
         scale = ourLerp(0.1f, 1.0f, scale * scale);
         sample *= scale;
         ssaoKernel.push_back(sample);
     }
 
-    // generate noise texture
+    // ⭐ 生成 4×4 = 16 个【旋转向量】组成的小噪声纹理 —— 引入随机性消除重复图案
     // ----------------------
+    // 每个噪声是个 2D(xy 随机,z=0)旋转向量,fs 里用来构造 TBN 矩阵给采样核加旋转。
+    // 因为只有 4×4 共 16 个,fs 里会让噪声纹理【平铺(tile)整个屏幕】,每 4×4 像素一个
+    // 旋转角,配合 blur pass 就能消除周期性重复痕迹。
     std::vector<glm::vec3> ssaoNoise;
     for (unsigned int i = 0; i < 16; i++)
     {
         glm::vec3 noise(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, 0.0f); // rotate around z-axis (in tangent space)
         ssaoNoise.push_back(noise);
     }
+    // 噪声纹理:4×4 尺寸,GL_RGBA32F 高精度浮点(小纹理,精度无所谓但够用)。
+    //   ⚠ GL_REPEAT 包裹模式:fs 用 TexCoords * noiseScale 采样,超出 [0,1] 会重复平铺。
     unsigned int noiseTexture; glGenTextures(1, &noiseTexture);
     glBindTexture(GL_TEXTURE_2D, noiseTexture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 4, 4, 0, GL_RGB, GL_FLOAT, &ssaoNoise[0]);
@@ -235,6 +267,7 @@ int main()
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // Pass 1【Geometry Pass】把场景几何写入 G-Buffer(位置/法线都是【view space】)
         // 1. geometry pass: render scene's geometry/color data into gbuffer
         // -----------------------------------------------------------------
         glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
@@ -245,14 +278,17 @@ int main()
             shaderGeometryPass.use();
             shaderGeometryPass.setMat4("projection", projection);
             shaderGeometryPass.setMat4("view", view);
+            // 房间 cube:放大后上移,相机在 cube 内部(像一个倒扣的盒子)。
             // room cube
             model = glm::mat4(1.0f);
             model = glm::translate(model, glm::vec3(0.0, 7.0f, 0.0f));
             model = glm::scale(model, glm::vec3(7.5f, 7.5f, 7.5f));
             shaderGeometryPass.setMat4("model", model);
+            // ⭐ invertedNormals=1:把房间 cube 的法线【翻转】,因为我们在 cube 内部看,
+            //   内表面的法线该朝里(朝向相机),不翻转的话光照和 SSAO 全算反。
             shaderGeometryPass.setInt("invertedNormals", 1); // invert normals as we're inside the cube
             renderCube();
-            shaderGeometryPass.setInt("invertedNormals", 0); 
+            shaderGeometryPass.setInt("invertedNormals", 0);
             // backpack model on the floor
             model = glm::mat4(1.0f);
             model = glm::translate(model, glm::vec3(0.0f, 0.5f, 0.0));
@@ -263,15 +299,18 @@ int main()
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
+        // ⭐ Pass 2【SSAO Pass】核心:算每个像素的遮蔽因子,写到 ssaoColorBuffer(GL_RED)
         // 2. generate SSAO texture
         // ------------------------
         glBindFramebuffer(GL_FRAMEBUFFER, ssaoFBO);
             glClear(GL_COLOR_BUFFER_BIT);
             shaderSSAO.use();
-            // Send kernel + rotation 
+            // 把 64 个采样点逐个传给 fs 的 samples[64] 数组。
+            // Send kernel + rotation
             for (unsigned int i = 0; i < 64; ++i)
                 shaderSSAO.setVec3("samples[" + std::to_string(i) + "]", ssaoKernel[i]);
             shaderSSAO.setMat4("projection", projection);
+            // 绑 3 张纹理:view space 位置 + view space 法线 + 4×4 噪声纹理。
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, gPosition);
             glActiveTexture(GL_TEXTURE1);
@@ -282,6 +321,7 @@ int main()
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
+        // Pass 3【Blur Pass】4×4 box 模糊去噪,把 SSAO 纹理的噪声斑点抹平。
         // 3. blur SSAO texture to remove noise
         // ------------------------------------
         glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurFBO);
@@ -293,10 +333,13 @@ int main()
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
+        // ⭐ Pass 4【Lighting Pass】延迟 Blinn-Phong,ambient 项乘上 SSAO 遮蔽因子
         // 4. lighting pass: traditional deferred Blinn-Phong lighting with added screen-space ambient occlusion
         // -----------------------------------------------------------------------------------------------------
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         shaderLightingPass.use();
+        // ⚠ 光源位置从【世界坐标】转成【view 坐标】再传 —— 因为 G-Buffer 存的是 view space,
+        //   两者坐标系必须对齐。用 view 矩阵乘齐次坐标完成变换。
         // send light relevant uniforms
         glm::vec3 lightPosView = glm::vec3(camera.GetViewMatrix() * glm::vec4(lightPos, 1.0));
         shaderLightingPass.setVec3("light.Position", lightPosView);
@@ -312,6 +355,7 @@ int main()
         glBindTexture(GL_TEXTURE_2D, gNormal);
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, gAlbedo);
+        // 第 4 张纹理:模糊后的 SSAO 遮蔽因子,fs 里用它调暗 ambient。
         glActiveTexture(GL_TEXTURE3); // add extra SSAO texture to lighting pass
         glBindTexture(GL_TEXTURE_2D, ssaoColorBufferBlur);
         renderQuad();

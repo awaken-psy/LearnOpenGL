@@ -34,6 +34,17 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+/**
+ * 纹理化 PBR 直接光照 — 在 1.1 基础上把 uniform 材质换成 5 张 PBR 纹理
+ *
+ * 场景:7×7 球矩阵(全部用同一套【铁锈金属】材质)+ 1 盏点光源。
+ *   - 材质来自 resources/textures/pbr/rusted_iron/ 下的 5 张图:
+ *     albedo / normal / metallic / roughness / ao,分别绑到纹理单元 0~4
+ *   - 球矩阵不再变 metallic/roughness(所有球共用纹理材质),只为铺满屏幕看效果
+ *   - renderSphere()、loadTexture()、光照计算与 1.1 完全相同,不再重复注释
+ *
+ * 新概念(相对 1.1):PBR 纹理集的加载与绑定、sRGB→linear 转换(在 fs 里做)。
+ */
 int main()
 {
     // glfw: initialize and configure
@@ -82,12 +93,14 @@ int main()
     Shader shader("1.2.pbr.vs", "1.2.pbr.fs");
 
     shader.use();
+    // 把 5 个 sampler uniform 绑到纹理单元 0~4(fs 里用 texture() 采样)
     shader.setInt("albedoMap", 0);
     shader.setInt("normalMap", 1);
     shader.setInt("metallicMap", 2);
     shader.setInt("roughnessMap", 3);
     shader.setInt("aoMap", 4);
 
+    // 加载【PBR 材质纹理集】(铁锈金属球):5 张图分别描述反照率/法线/金属度/粗糙度/AO
     // load PBR material textures
     // --------------------------
     unsigned int albedo    = loadTexture(FileSystem::getPath("resources/textures/pbr/rusted_iron/albedo.png").c_str());
@@ -96,7 +109,7 @@ int main()
     unsigned int roughness = loadTexture(FileSystem::getPath("resources/textures/pbr/rusted_iron/roughness.png").c_str());
     unsigned int ao        = loadTexture(FileSystem::getPath("resources/textures/pbr/rusted_iron/ao.png").c_str());
 
-    // lights
+    // lights (本 demo 只用 1 盏灯;辐射度 150,机制同 1.1)
     // ------
     glm::vec3 lightPositions[] = {
         glm::vec3(0.0f, 0.0f, 10.0f),
@@ -138,6 +151,7 @@ int main()
         shader.setMat4("view", view);
         shader.setVec3("camPos", camera.Position);
 
+        // 把 5 张纹理绑到对应纹理单元(0~4),fs 里 sampler 已映射到这些单元
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, albedo);
         glActiveTexture(GL_TEXTURE1);
@@ -256,6 +270,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 
 // renders (and builds at first invocation) a sphere
 // -------------------------------------------------
+// renderSphere() / loadTexture() 与 1.1.lighting 完全相同,不再重复注释。
 unsigned int sphereVAO = 0;
 unsigned int indexCount;
 void renderSphere()

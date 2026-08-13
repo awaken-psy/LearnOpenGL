@@ -1,3 +1,5 @@
+// Geometry Pass 片段着色器 —— 与 8.1.g_buffer.fs 完全相同(MRT 写 3 张 G-Buffer 纹理)
+// 详细注释见 8.1.g_buffer.fs,此处不重复。
 #version 330 core
 layout (location = 0) out vec3 gPosition;
 layout (location = 1) out vec3 gNormal;

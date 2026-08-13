@@ -1,3 +1,13 @@
+// PBR 片段着色器(2.1.2)—— ⭐ 在 2.1.1 基础上,用【IBL 漫反射】替换固定 0.03 的 ambient。
+//
+// 改动仅集中在 main 末尾的 ambient 段:用 irradianceMap(按法线采样)算出真实的漫反射环境光。
+// Cook-Torrance 直接光照部分(DistributionGGX / GeometrySmith / fresnelSchlick)和 2.1.1 完全一致。
+//
+// 【关键公式】ambient = kD * (irradiance * albedo) * ao
+//   - irradiance = texture(irradianceMap, N):按法线方向采样环境卷积结果
+//   - albedo:漫反射颜色
+//   - kD:漫反射能量比例(1 - 菲涅尔,再乘非金属性)
+//   - ⚠ 这里 diffuse = irradiance * albedo【不除 π】——因为卷积着色器里已经预先乘 π 合并了 1/π。
 #version 330 core
 out vec4 FragColor;
 in vec2 TexCoords;
@@ -111,10 +121,15 @@ void main()
     }   
     
     // ambient lighting (we now use IBL as the ambient term)
+    // ⭐ 本 demo 核心:用 IBL 替换固定环境光。
+    // kS:由【视角·法线】算菲涅尔—— grazing 角(视角擦边)时反射更强;
+    //    ambient 的菲涅尔用的是 N·V(直接光照用的是 H·V,略有不同)。
     vec3 kS = fresnelSchlick(max(dot(N, V), 0.0), F0);
     vec3 kD = 1.0 - kS;
-    kD *= 1.0 - metallic;	  
+    kD *= 1.0 - metallic;
+    // ⭐ 按法线 N 采样 irradianceMap,得到该方向的【半球积分环境光】。
     vec3 irradiance = texture(irradianceMap, N).rgb;
+    // ⚠ diffuse 不除 π:卷积着色器里预先乘了 π,把 BRDF 的 1/π 合并进 irradiance 了。
     vec3 diffuse      = irradiance * albedo;
     vec3 ambient = (kD * diffuse) * ao;
     // vec3 ambient = vec3(0.002);

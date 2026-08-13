@@ -36,6 +36,28 @@ bool firstMouse = true;
 float deltaTime = 0.0f;	
 float lastFrame = 0.0f;
 
+/**
+ * IBL 终极形态:【纹理化 PBR + 完整 IBL】(全章最完整的 demo)。
+ *
+ * 合并两个能力:
+ *   - 6.1.2 的【纹理化材质】(albedo/normal/metallic/roughness/ao 5 张图)
+ *   - 2.2.1 的【IBL 镜面反射】(irradiance/prefilter/brdfLUT 3 张预计算贴图)
+ *
+ * 【纹理 slot 分配】(关键:每帧只重绑 3-7,0-2 不变):
+ *   slot 0 = irradianceMap     (IBL 漫反射,scene 共享)
+ *   slot 1 = prefilterMap      (IBL 镜面反射,scene 共享)
+ *   slot 2 = brdfLUT           (IBL BRDF 查找表,scene 共享)
+ *   slot 3 = albedoMap         (材质属性,每个物体不同)
+ *   slot 4 = normalMap
+ *   slot 5 = metallicMap
+ *   slot 6 = roughnessMap
+ *   slot 7 = aoMap
+ *
+ * 5 种材质(rusted iron/gold/grass/plastic/wall)横向排成一行,演示 PBR 材质库的工作流。
+ *
+ * ⚠ 整个 IBL 预计算管线(envCubemap/irradianceMap/prefilterMap/brdfLUT)
+ *    与 2.2.1 完全相同,本 demo 的 cpp 改动只在材质加载和渲染循环。
+ */
 int main()
 {
     // glfw: initialize and configure
@@ -93,6 +115,8 @@ int main()
     Shader backgroundShader("2.2.2.background.vs", "2.2.2.background.fs");
 
     pbrShader.use();
+    // ⭐【8 个 slot 一次性绑定】—— IBL 三张(0-2)和材质五张(3-7)。
+    //   这些 sampler 的槽位映射是【静态】的,初始化时设一次即可,运行时无需重设。
     pbrShader.setInt("irradianceMap", 0);
     pbrShader.setInt("prefilterMap", 1);
     pbrShader.setInt("brdfLUT", 2);
@@ -107,6 +131,9 @@ int main()
 
     // load PBR material textures
     // --------------------------
+    // 【PBR 标准材质库】每种材质 5 张图:albedo/normal/metallic/roughness/ao。
+    // 5 种材质横向排成一行,展示真实工业 PBR 工作流(从 SubPainter/Blender 等工具导出的纹理)。
+    // loadTexture() 定义在文件末尾:加载 + 自动生成 mipmap + REPEAT 寻址。
     // rusted iron
     unsigned int ironAlbedoMap = loadTexture(FileSystem::getPath("resources/textures/pbr/rusted_iron/albedo.png").c_str());
     unsigned int ironNormalMap = loadTexture(FileSystem::getPath("resources/textures/pbr/rusted_iron/normal.png").c_str());
@@ -159,6 +186,8 @@ int main()
 
     // pbr: setup framebuffer
     // ----------------------
+    // 【与 2.2.1 相同】从这一行到 brdfLUT 渲染完成为止,整段 IBL 预计算管线与 2.2.1.cpp 完全一致。
+    // 详见 2.2.1 注释:captureFBO/envCubemap/irradianceMap/prefilterMap/brdfLUT 五个步骤。
     unsigned int captureFBO;
     unsigned int captureRBO;
     glGenFramebuffers(1, &captureFBO);
@@ -402,6 +431,7 @@ int main()
         pbrShader.setVec3("camPos", camera.Position);
 
         // bind pre-computed IBL data
+        // ⭐ 0-2 号 slot(IBL)绑一次就够——整个场景共享,渲染循环内不会变。
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
         glActiveTexture(GL_TEXTURE1);
@@ -410,6 +440,8 @@ int main()
         glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
 
         // rusted iron
+        // ⭐ 3-7 号 slot(材质)每个物体重绑一次——每种材质都不同。
+        //   下面 5 个材质(rusted iron/gold/grass/plastic/wall)各绑一次后渲染一个球。
         glActiveTexture(GL_TEXTURE3);
         glBindTexture(GL_TEXTURE_2D, ironAlbedoMap);
         glActiveTexture(GL_TEXTURE4);

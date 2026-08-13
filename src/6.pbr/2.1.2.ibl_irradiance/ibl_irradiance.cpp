@@ -34,6 +34,22 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+/**
+ * IBL 第二步:【漫反射 IBL】—— 用 irradianceMap 替换固定的 0.03 环境光。
+ *
+ * 在 2.1.1 基础上,本 demo 多了一步预计算:
+ *   对 envCubemap 做【半球卷积】,把每个法线方向上半球内的所有入射光加起来,
+ *   得到一张 32×32 的 irradianceMap(立方体贴图)。运行时按法线采样即可,无需实时积分。
+ *
+ * 数学上:L_diffuse(N) = albedo/π * ∫(L_in * cosθ) dΩ
+ *   卷积着色器(2.1.2.irradiance_convolution.fs)用两层 for 循环近似这个半球积分,
+ *   最后乘 π(因为 BRDF 里的 1/π 已经在卷积时合并了)。
+ *
+ * 【为什么只 32×32?】漫反射光照非常"模糊"——相邻法线对应的 irradiance 几乎一样,
+ * 不需要高分辨率;32 足够,而且让卷积着色器跑得很快。
+ *
+ * 注意:整个 IBL 流程只覆盖 ambient 项;Cook-Torrance 直接光照部分完全不变。
+ */
 int main()
 {
     // glfw: initialize and configure
@@ -115,6 +131,8 @@ int main()
 
     // pbr: setup framebuffer
     // ----------------------
+    // 【与 2.1.1 相同】capture FBO/RBO 创建。512×512 是给 envCubemap 用的初始尺寸,
+    // 后面预计算 irradianceMap 时会 resize 到 32×32。
     unsigned int captureFBO;
     unsigned int captureRBO;
     glGenFramebuffers(1, &captureFBO);
@@ -127,6 +145,7 @@ int main()
 
     // pbr: load the HDR environment map
     // ---------------------------------
+    // 【与 2.1.1 相同】HDR 全景图加载 → GL_RGB16F 浮点 2D 纹理。
     stbi_set_flip_vertically_on_load(true);
     int width, height, nrComponents;
     float *data = stbi_loadf(FileSystem::getPath("resources/textures/hdr/newport_loft.hdr").c_str(), &width, &height, &nrComponents, 0);
@@ -151,6 +170,7 @@ int main()
 
     // pbr: setup cubemap to render to and attach to framebuffer
     // ---------------------------------------------------------
+    // 【与 2.1.1 相同】创建 envCubemap(6 面 512×512 GL_RGB16F)。
     unsigned int envCubemap;
     glGenTextures(1, &envCubemap);
     glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
@@ -166,6 +186,7 @@ int main()
 
     // pbr: set up projection and view matrices for capturing data onto the 6 cubemap face directions
     // ----------------------------------------------------------------------------------------------
+    // 【与 2.1.1 相同】captureProjection + 6 个 captureViews。这套 6 面相机下面会被两个卷积复用。
     glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
     glm::mat4 captureViews[] =
     {
@@ -179,6 +200,7 @@ int main()
 
     // pbr: convert HDR equirectangular environment map to cubemap equivalent
     // ----------------------------------------------------------------------
+    // 【与 2.1.1 相同】HDR equirectangular → envCubemap 重投影。
     equirectangularToCubemapShader.use();
     equirectangularToCubemapShader.setInt("equirectangularMap", 0);
     equirectangularToCubemapShader.setMat4("projection", captureProjection);
@@ -199,6 +221,9 @@ int main()
 
     // pbr: create an irradiance cubemap, and re-scale capture FBO to irradiance scale.
     // --------------------------------------------------------------------------------
+    // ⭐ 【新增】irradianceMap:本 demo 的核心输出。
+    //   一张 32×32×6 面的 GL_RGB16F 立方体贴图——存的是每个法线方向的【半球积分结果】。
+    //   为什么 32?漫反射结果非常平滑(相邻法线的环境光几乎一样),32 足够看清细节且占显存极少。
     unsigned int irradianceMap;
     glGenTextures(1, &irradianceMap);
     glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
@@ -212,19 +237,24 @@ int main()
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+    // ⭐ 复用 captureFBO,但把 RBO 的深度缓冲【resize 到 32×32】以匹配 irradianceMap 尺寸。
+    //   glRenderbufferStorage 可以重复调用,会重新分配存储。
     glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
     glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 32, 32);
 
     // pbr: solve diffuse integral by convolution to create an irradiance (cube)map.
     // -----------------------------------------------------------------------------
+    // ⭐ 【半球卷积】:对 envCubemap 做积分得到 irradianceMap。
+    //   输入 envCubemap,输出 irradianceMap,用同一组 captureViews 渲染立方体 6 面。
+    //   每个 fragment 在 fs 里对法线方向的上半球做黎曼积分(详见 irradiance_convolution.fs)。
     irradianceShader.use();
     irradianceShader.setInt("environmentMap", 0);
     irradianceShader.setMat4("projection", captureProjection);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
 
-    glViewport(0, 0, 32, 32); // don't forget to configure the viewport to the capture dimensions.
+    glViewport(0, 0, 32, 32); // ⭐ viewport 改成 32×32 匹配 irradianceMap。
     glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
     for (unsigned int i = 0; i < 6; ++i)
     {
@@ -276,6 +306,7 @@ int main()
         pbrShader.setVec3("camPos", camera.Position);
 
         // bind pre-computed IBL data
+        // ⭐ 把预计算好的 irradianceMap 绑到 slot 0,pbr.fs 按法线采样得到漫反射环境光。
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
 

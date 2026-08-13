@@ -283,7 +283,7 @@ int main()
         //   2. 去掉视图矩阵的平移分量（只保留旋转），让天空盒看起来"无限远"
         //   3. 渲染后恢复 GL_LESS
         // draw skybox as last
-        glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+        glDepthFunc(GL_LEQUAL); //当前片段深度小于等于已存的深度才通过
         skyboxShader.use();
         // ⭐ mat4(mat3(...)) 提取视图矩阵的 3x3 旋转部分，丢弃平移，再转回 4x4
         //   这样天空盒不会随摄像机移动而平移，始终"包裹"在场景周围

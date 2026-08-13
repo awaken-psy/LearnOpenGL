@@ -230,6 +230,17 @@ function(create_project_from_sources chapter demo)
     else()
 		target_compile_options(${NAME} PRIVATE -Wno-pragma-pack)
     endif(MSVC)
+    # Windows 上 clang(MSVC ABI,非 clang-cl)+ lld-link 的情况:上面 if(MSVC) 进不去
+    # (CMAKE_C_COMPILER_ID=Clang、MSVC 变量为假),但链接器仍是 lld-link,照样报 LNK4099
+    # (预编译 .lib 里写死的 PDB 绝对路径在别的机器上找不到)。这里补上忽略:
+    # clang 作链接前端时,要用 -Wl, 把 /ignore:4099 透传给 lld-link
+    # (裸 /ignore:4099 会被 clang++ 当成输入文件路径,报 "no such file or directory")。
+    if(WIN32 AND NOT MSVC)
+        get_filename_component(_logl_linker "${CMAKE_LINKER}" NAME_WE)
+        if(_logl_linker STREQUAL "lld-link")
+            target_link_options(${NAME} PRIVATE "-Wl,/ignore:4099")
+        endif()
+    endif()
     if(WIN32)
         set_target_properties(${NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${chapter}")
         set_target_properties(${NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${chapter}/Debug")

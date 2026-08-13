@@ -1,3 +1,4 @@
+// 阴影映射(2/3)— 深度图顶点着色器。内容与 3.1.1 完全相同,详见 3.1.1.shadow_mapping_depth.vs。
 #version 330 core
 layout (location = 0) in vec3 aPos;
 

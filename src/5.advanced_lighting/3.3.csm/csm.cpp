@@ -1,3 +1,19 @@
+/**
+ * ⚠ 警告:这是 LearnOpenGL 教程留下的【占位/未完成 demo】,【不是】级联阴影映射(CSM)!
+ *
+ * 它只是教程正文的一个空壳,代码本身做的事是:画几个立方体 + 地板,显示线性化深度,
+ * 和"级联阴影"完全没关系。真正可运行的 CSM 实现请看 8.guest/2021/2.csm/。
+ *
+ * 几个明显能看出它"未完成"的痕迹:
+ *   ① 用 GLEW + SOIL 加载 OpenGL 和纹理(本仓库其他 demo 统一用 GLAD + stb_image)。
+ *   ② 加载的着色器叫 "depth_testing.vs" / "depth_testing.frag"(本目录【不存在】这两个文件,
+ *      实际存在的是 csm.vs / csm.fs),所以这个 cpp 跑起来会直接报错。
+ *   ③ Shader 类用的是 .Program 成员 + glUniformMatrix4fv 手动设 uniform 的老式写法,
+ *      和本仓库其他 demo 用的 shader.h(setMat4 等封装)对不上 —— 说明它是更早版本留下的代码。
+ *
+ * 看这个 demo 的代码不会有助理解 CSM,建议直接去 8.guest/2021/2.csm 学习完整实现。
+ */
+
 // Std. Includes
 #include <string>
 

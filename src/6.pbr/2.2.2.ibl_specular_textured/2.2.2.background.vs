@@ -1,3 +1,4 @@
+// 天空盒顶点着色器 —— 【与 2.2.1.background.vs 完全相同】。
 #version 330 core
 layout (location = 0) in vec3 aPos;
 

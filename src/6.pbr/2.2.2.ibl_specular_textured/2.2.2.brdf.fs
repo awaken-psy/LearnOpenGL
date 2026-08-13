@@ -1,3 +1,5 @@
+// 镜面反射 IBL Split-Sum 第二部分(BRDF LUT)—— 【与 2.2.1.brdf.fs 完全相同】。
+// 详见 2.2.1.brdf.fs 注释(IntegrateBRDF 返回 scale/bias,k = roughness²/2)。
 #version 330 core
 out vec2 FragColor;
 in vec2 TexCoords;

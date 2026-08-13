@@ -1,3 +1,5 @@
+// 阴影映射(3/3)— 主场景顶点着色器。内容与 3.1.2 完全相同,详见 3.1.2.shadow_mapping.vs。
+//   (同样输出 FragPosLightSpace,本节没有改动 vs。)
 #version 330 core
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aNormal;

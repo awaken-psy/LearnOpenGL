@@ -39,6 +39,29 @@ float lastFrame = 0.0f;
 // meshes
 unsigned int planeVAO;
 
+/**
+ * 阴影映射三部曲(3/3)——修复阴影:斜率 bias + PCF 软阴影 + 超出视锥处理
+ *
+ * 上一节(3.1.2)能产生阴影,但有三个毛病,本节逐个修掉:
+ *
+ *   ①【阴影失真 shadow acne】(黑白条纹) → 用【bias 偏移】修复
+ *      原因:深度图纹素有尺寸,平面对自己采样时最近深度有抖动。
+ *      修法:比较前给当前深度减去一个 bias。bias 用【斜率】自适应——
+ *        bias = max(0.05 × (1 − dot(normal, lightDir)), 0.005)
+ *      法线越偏离光源(掠射),失真越重,bias 越大;正对光源时 bias 最小。
+ *
+ *   ②【阴影边缘锯齿 hard shadow】 → 用【PCF 百分比渐近滤波】软化
+ *      原因:深度图分辨率有限,每个纹素要么 in 要么 out,边缘是硬边。
+ *      修法:对当前片段周围 3×3 共 9 个纹素各判一次阴影再取平均 → 0~1 的软值。
+ *      用 textureSize(shadowMap,0) 拿到纹理尺寸算出 1 纹素的 UV 步长 texelSize。
+ *
+ *   ③【超出光源视锥的地方被误判成阴影】(一片黑) → 两个手段
+ *      a. fs 里:透视除法后 projCoords.z > 1.0 说明片段在 far_plane 外,直接 shadow=0;
+ *      b. cpp 里:深度图纹理改用【GL_CLAMP_TO_BORDER】+ 白色边框色——
+ *         采样到视锥外时返回 1.0(最近深度=最远),怎么比都不算"在阴影里"。
+ *
+ * 深度FBO / 两趟渲染流程同 3.1.2,此处只注释【与本节三处修复相关】的差异。
+ */
 int main()
 {
     // glfw: initialize and configure
@@ -130,9 +153,14 @@ int main()
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    // ⭐【修复③b】环绕方式从 GL_REPEAT 改成 GL_CLAMP_TO_BORDER:UV 超出 [0,1] 时
+    //   不再重复采样,而是返回"边框色"。配合下面把边框色设成白色(深度=1.0=最远)。
+    //   这样光源视锥外的片段采样到深度 1.0,怎么比都不会被判成阴影(避免一片黑)。
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     float borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
+    // glTexParameterfv(target, pname, params):给纹理设一个 4 浮点边框色。
+    //   深度图用白色 = 最远深度,含义是"光源看这一带没东西挡着"。
     glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
     // attach depth texture as FBO's depth buffer
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);

@@ -37,6 +37,24 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+/**
+ * 点光源软阴影(Soft Shadows) — 在 3.2.1 基础上加【球面 PCF】
+ *
+ * ⚠ 本 demo 的 cpp 代码与 3.2.1.point_shadows【完全相同】,
+ *   cubemap 创建、6 个光空间矩阵、两遍渲染流程都一样(详见 3.2.1 的注释)。
+ *
+ * 唯一差异在 fs 的 ShadowCalculation():把"单点采样硬判"改成"球面多点采样取平均",
+ *   让阴影边缘从锐利变成柔和(类似真实光源有面积,不会产生刀切般的阴影边界)。
+ *   具体见 3.2.2.point_shadows.fs 的注释。
+ *
+ * 软阴影的三个要点(在 fs 里实现):
+ *   ① gridSamplingDisk[20]:预定义 20 个方向向量(立方体8顶点 + 12棱中点),
+ *      作为球面上的采样偏移方向,均匀覆盖球面。
+ *   ② diskRadius:采样半径,随【相机到片段的距离】增大 —— 远处的阴影用更大半径采样,
+ *      让远处阴影更柔和(类似 PCSS 的思路)。
+ *   ③ bias = 0.15:比 3.2.1 的 0.05 大,因为多点采样更敏感,需要更大偏移避免 self-shadow。
+ */
+
 int main()
 {
     // glfw: initialize and configure

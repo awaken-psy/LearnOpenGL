@@ -35,6 +35,16 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+/**
+ * 陡峭视差贴图(Steep Parallax Mapping)— 把 5.1 的朴素偏移换成【分层 raymarch】
+ *
+ * cpp 部分和 5.1.parallax_mapping.cpp 几乎完全一样(同样的 3 张图、Q/E 调 heightScale、
+ * 同样的 renderQuad 切线计算),区别只在加载的 fs 换成了 5.2 版本——
+ * 里面用 while 循环沿视线逐层步进找交点,比 5.1 的单次偏移准得多,但也更贵。
+ *
+ * 具体分层 raymarch 的逻辑见 5.2.parallax_mapping.fs 注释。
+ */
+
 int main()
 {
     // glfw: initialize and configure

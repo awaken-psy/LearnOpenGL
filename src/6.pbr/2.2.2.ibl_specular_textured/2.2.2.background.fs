@@ -1,3 +1,4 @@
+// 天空盒片段着色器 —— 【与 2.2.1.background.fs 相同】(textureLod 强制 mip 0)。
 #version 330 core
 out vec4 FragColor;
 in vec3 WorldPos;

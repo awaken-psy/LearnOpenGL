@@ -1,3 +1,8 @@
+// Geometry Pass 顶点着色器 — 把 backpack 的顶点变换到【世界空间】输出给 fs
+//
+// 注意:FragPos 和 Normal 都输出【世界空间】(不是 view space)。
+// 后面 lighting pass 的光源 Position 也是世界坐标,两者要对得上才能算光照方向。
+// (对比 9.ssao 的 geometry pass 用的是 view space,两套方案都行,只要统一。)
 #version 330 core
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aNormal;

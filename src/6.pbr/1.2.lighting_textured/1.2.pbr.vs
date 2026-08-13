@@ -1,3 +1,4 @@
+// 顶点着色器 — 与 1.1.pbr.vs 完全相同(PBR 在世界空间算光照,输出 WorldPos/Normal)。
 #version 330 core
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aNormal;

@@ -34,6 +34,21 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+/**
+ * IBL 第一步:建立【环境贴图预计算管线】(capture pipeline)
+ *
+ * 本 demo 的 PBR 球阵着色器和 6.1 完全一样(ambient 仍是固定 0.03,没有用 IBL),
+ * 只是把 HDR 全景图(env map)准备好——这是后续 IBL 漫反射/镜面反射的基础。
+ *
+ * 关键流程(都在 main 里一次性预计算,不在渲染循环内):
+ *   1. 用 stbi_loadf 加载 HDR 全景图(2D 浮点纹理 GL_RGB16F,值可 > 1.0)
+ *   2. 把这张【球面投影 equirectangular】图重投影成立方体贴图 envCubemap(6 面)
+ *      ——做法:对立方体 6 个面各跑一遍着色器,每次绑一个 capture view 渲染到 FBO
+ *   3. 渲染循环里:球阵用普通 PBR,天空盒用刚转好的 envCubemap
+ *
+ * 【为什么先转 cubemap?】原始 equirectangular(2:1 的矩形)在两极有严重拉伸,
+ * 直接采样会让光照计算走样;cubemap 6 面各向同性,采样更均匀,还能用 textureLod 做 mipmap。
+ */
 int main()
 {
     // glfw: initialize and configure
@@ -76,6 +91,9 @@ int main()
     // configure global opengl state
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
+    // ⭐ 天空盒深度技巧:把深度比较改成 <= 。配合 background.vs 里 gl_Position=clipPos.xyww
+    // (让 z=w,透视除法后 z=1.0 即远平面),天空盒就能"透过"所有场景物体画在最远处。
+    // ⚠ 必须用 GL_LEQUAL,默认 GL_LESS 会让 z=1.0 的天空盒被深度测试丢弃。
     glDepthFunc(GL_LEQUAL); // set depth function to less than AND equal for skybox depth trick.
 
     // build and compile shaders
@@ -113,6 +131,8 @@ int main()
 
     // pbr: setup framebuffer
     // ----------------------
+    // 【capture FBO】:一个 512×512 的离屏渲染目标。后面预计算 irradiance/prefilter 都复用它。
+    // 这里只附一个深度 RBO(不需要颜色,颜色会附到 cubemap 的某一面上,见下)。
     unsigned int captureFBO;
     unsigned int captureRBO;
     glGenFramebuffers(1, &captureFBO);
@@ -125,16 +145,28 @@ int main()
 
     // pbr: load the HDR environment map
     // ---------------------------------
+    // ⭐ stbi_set_flip_vertically_on_load(true):翻转图像垂直方向。
+    //   OpenGL 纹理坐标 (0,0) 在左下,而大多数图片文件格式(包括 HDR)在左上;
+    //   翻转后才能正确对应。这里和后面 GL_CLAMP_TO_EDGE 一起避免接缝错位。
     stbi_set_flip_vertically_on_load(true);
     int width, height, nrComponents;
+    // ⭐ stbi_loadf:把 HDR 文件以【浮点数】加载(不是 0-255 的 byte)。
+    //   HDR 图里像素值可以远大于 1.0(比如太阳那一片可能到 1000+),8-bit 整数装不下,
+    //   必须用 float 才能保留真实世界的亮度比例——这就是 PBR 里"光有强弱之分"的来源。
     float *data = stbi_loadf(FileSystem::getPath("resources/textures/hdr/newport_loft.hdr").c_str(), &width, &height, &nrComponents, 0);
     unsigned int hdrTexture;
     if (data)
     {
         glGenTextures(1, &hdrTexture);
         glBindTexture(GL_TEXTURE_2D, hdrTexture);
+        // ⭐ GL_RGB16F:【内部格式】用每通道 16 位浮点(半精度)。
+        //   普通纹理是 GL_RGB8(每通道 8-bit 整数,范围 0~1),装不下 HDR 的高动态范围。
+        //   参数顺序:target, level(0=原图), internalFormat=GL_RGB16F,
+        //            width, height, border(必须0), format=GL_RGB(像素数据排列),
+        //            type=GL_FLOAT(CPU 端数据是 float)。
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, data); // note how we specify the texture's data value to be float
 
+        // CLAMP_TO_EDGE:球面投影图在边界采样不能 wrap(否则会从对侧取到无关像素)。
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -149,22 +181,32 @@ int main()
 
     // pbr: setup cubemap to render to and attach to framebuffer
     // ---------------------------------------------------------
+    // 创建空白的【envCubemap】:6 面、每面 512×512 的 GL_RGB16F 浮点纹理。
+    // 注意这里传 nullptr(不赋初值),只是先分配存储——稍后会用 FBO 渲染填充。
     unsigned int envCubemap;
     glGenTextures(1, &envCubemap);
     glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
     for (unsigned int i = 0; i < 6; ++i)
     {
+        // ⭐ GL_TEXTURE_CUBE_MAP_POSITIVE_X + i:6 个面的枚举值连续,可以 +i 遍历。
+        //   顺序为 +X, -X, +Y, -Y, +Z, -Z。同样用 GL_RGB16F 浮点格式保留 HDR 动态范围。
         glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 512, 512, 0, GL_RGB, GL_FLOAT, nullptr);
     }
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR); 
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     // pbr: set up projection and view matrices for capturing data onto the 6 cubemap face directions
     // ----------------------------------------------------------------------------------------------
+    // 【capture pipeline 的核心】:立方体一面 = 一个 90°FOV 的相机。
+    // 把 6 个相机摆在原点朝 6 个方向看,就把球面环境图"装进"立方体 6 面了。
+    // projection:90° 视角、aspect=1(每面正方形)、近远 0.1~10(只要够覆盖立方体大小)。
     glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+    // 6 个 capture view,依次对应 +X,-X,+Y,-Y,+Z,-Z 六个面。
+    // ⚠ up 向量很关键:lookAt 要求 up 不能和 forward 平行,所以 ±Y 面(上下)的 up 用 ±Z 而不是 Y。
+    //   上下两面的 up 方向被特意选成"让立方体面横平竖直对应原始 HDR 图",否则天空会歪。
     glm::mat4 captureViews[] =
     {
         glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3( 1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
@@ -177,17 +219,27 @@ int main()
 
     // pbr: convert HDR equirectangular environment map to cubemap equivalent
     // ----------------------------------------------------------------------
+    // 把 2D HDR 全景图重投影成 6 面立方体贴图。技术核心:
+    //   对每个面 i,把 captureFBO 的颜色输出绑到 envCubemap 的第 i 面,
+    //   然后用 captureViews[i] 渲染一个单位立方体(里面贴着 equirectangularMap)。
+    //   着色器把每个屏幕像素的方向向量转成球面 UV 去 HDR 图采样,结果就"投影"到了 cubemap 这一面。
     equirectangularToCubemapShader.use();
     equirectangularToCubemapShader.setInt("equirectangularMap", 0);
     equirectangularToCubemapShader.setMat4("projection", captureProjection);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, hdrTexture);
 
+    // ⭐ glViewport 改成 512×512 —— 渲染目标尺寸变了,viewport 必须跟着改,否则只画到左下角一小块。
     glViewport(0, 0, 512, 512); // don't forget to configure the viewport to the capture dimensions.
     glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
     for (unsigned int i = 0; i < 6; ++i)
     {
         equirectangularToCubemapShader.setMat4("view", captureViews[i]);
+        // ⭐ glFramebufferTexture2D:把 cubemap 第 i 面绑为 FBO 的颜色输出。
+        //   参数:target=GL_FRAMEBUFFER, attachment=GL_COLOR_ATTACHMENT0,
+        //        textarget=GL_TEXTURE_CUBE_MAP_POSITIVE_X+i(指定哪一面),
+        //        texture=envCubemap, level=0。
+        //   这是【渲染到 cubemap】的标准做法——FBO 本身绑一次,然后循环里换面 6 次。
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, envCubemap, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -204,6 +256,7 @@ int main()
     backgroundShader.setMat4("projection", projection);
 
     // then before rendering, configure the viewport to the original framebuffer's screen dimensions
+    // 预计算结束,把 viewport 改回屏幕大小(1280×720)。前面设成 512×512 是为了 capture,这里恢复。
     int scrWidth, scrHeight;
     glfwGetFramebufferSize(window, &scrWidth, &scrHeight);
     glViewport(0, 0, scrWidth, scrHeight);

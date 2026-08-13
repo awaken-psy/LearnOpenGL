@@ -23,6 +23,8 @@ void renderQuad();
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
+// 【heightScale】高度缩放:决定视差偏移有多狠。运行时按 Q/E 调,默认 0.1。
+// ⚠ 调太大(>0.5)会出现明显的 UV 拉伸和鬼影,因为朴素视差近似扛不住。
 float heightScale = 0.1f;
 
 // camera
@@ -34,6 +36,27 @@ bool firstMouse = true;
 // timing
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+
+/**
+ * 视差贴图(Parallax Mapping)— 用【高度图】让贴图随视角"错位",假装有深度
+ *
+ * 法线贴图只改光照方向,表面还是平的。视差贴图更进一步:根据视角把采样 UV 沿视线方向
+ * "拖动"一小段——像你侧着看浮雕,远处的花纹会被近处挡住一点,纹理仿佛就有了起伏。
+ *
+ * 核心做法(fs 里 ParallaxMapping 一行):
+ *     newUV = UV − viewDir.xy × (height × heightScale)
+ *   height 从灰度高度图采样,viewDir 在切线空间。height 越大、越正对边缘,UV 偏移越多。
+ *
+ * ⚠ 这是最朴素的"近似"视差(offset limiting),只在角度不大时还算准;
+ *    后面 5.2/5.3 会用 raymarch 改进。
+ *
+ * 本 demo 新增(相对 4.normal_mapping):
+ *   - 多加载一张【高度图 depthMap】(bricks2_disp.jpg),绑到 GL_TEXTURE2
+ *   - uniform heightScale 控制凸起强度,运行时用 Q/E 实时调(默认 0.1)
+ *   - fs 里采到的 UV 若越界就 discard,避免边缘拉出鬼影
+ *   - renderQuad 的切线计算与 4 相同,只是额外 glm::normalize 了一下
+ *   - vs 改用更简单的 TBN 写法(不做 Gram-Schmidt,详见 .vs 注释)
+ */
 
 int main()
 {
@@ -85,6 +108,7 @@ int main()
     // -------------
     unsigned int diffuseMap = loadTexture(FileSystem::getPath("resources/textures/bricks2.jpg").c_str());
     unsigned int normalMap  = loadTexture(FileSystem::getPath("resources/textures/bricks2_normal.jpg").c_str());
+    // 【高度图 depthMap】:一张灰度图,越白越高、越黑越低。fs 用它决定 UV 该偏多少。
     unsigned int heightMap  = loadTexture(FileSystem::getPath("resources/textures/bricks2_disp.jpg").c_str());
    /* unsigned int diffuseMap = loadTexture(FileSystem::getPath("resources/textures/toy_box_diffuse.png").c_str());
     unsigned int normalMap = loadTexture(FileSystem::getPath("resources/textures/toy_box_normal.png").c_str());
@@ -95,7 +119,7 @@ int main()
     shader.use();
     shader.setInt("diffuseMap", 0);
     shader.setInt("normalMap", 1);
-    shader.setInt("depthMap", 2);
+    shader.setInt("depthMap", 2);  // 高度图绑到 2 号槽,fs 里 sampler2D depthMap 读它
 
     // lighting info
     // -------------
@@ -161,6 +185,8 @@ int main()
 
 // renders a 1x1 quad in NDC with manually calculated tangent vectors
 // ------------------------------------------------------------------
+// 切线计算和 4.normal_mapping 里一模一样,只是这里额外 glm::normalize 了一下
+// (tangent/bitangent 都单位化)。公式推导见 4.normal_mapping.cpp 注释。
 unsigned int quadVAO = 0;
 unsigned int quadVBO;
 void renderQuad()
@@ -271,18 +297,19 @@ void processInput(GLFWwindow *window)
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
 
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS) 
+    // 【Q/E】实时调 heightScale:Q 减、E 加,每帧 0.0005 的步进,按住持续变化。
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
     {
-        if (heightScale > 0.0f) 
+        if (heightScale > 0.0f)
             heightScale -= 0.0005f;
-        else 
+        else
             heightScale = 0.0f;
     }
-    else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) 
+    else if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
     {
-        if (heightScale < 1.0f) 
+        if (heightScale < 1.0f)
             heightScale += 0.0005f;
-        else 
+        else
             heightScale = 1.0f;
     }
 }

@@ -1,3 +1,5 @@
+// 漫反射 IBL 卷积 —— 【与 2.1.2.irradiance_convolution.fs 相同】。详见 2.1.2 注释。
+// 双重 for 半球积分,cosθ * sinθ 加权,最后乘 π。
 #version 330 core
 out vec4 FragColor;
 in vec3 WorldPos;

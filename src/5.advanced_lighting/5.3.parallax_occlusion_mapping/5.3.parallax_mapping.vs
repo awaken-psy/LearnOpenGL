@@ -1,3 +1,5 @@
+// 与 5.1.parallax_mapping.vs 完全相同 —— 三个 demo(5.1/5.2/5.3)共用同一个 vs。
+// 切线空间转换的说明见 5.1.parallax_mapping.vs 的注释。
 #version 330 core
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aNormal;

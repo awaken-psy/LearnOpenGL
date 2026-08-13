@@ -39,6 +39,25 @@ float lastFrame = 0.0f;
 // meshes
 unsigned int planeVAO;
 
+/**
+ * 阴影映射三部曲(1/3)——从光源视角渲染【深度图 Depth Map】
+ *
+ * 阴影的本质:一个点如果从光源看,它前面有更近的东西挡着,就处于阴影里。
+ * 所以第一步是"站到光源位置"把整个场景画一遍,但不画颜色,只记录每个位置
+ * 离光源最近有多近——这张【最近深度图】就是后面判断阴影的依据。
+ *
+ * 本节新增(相对前几章):
+ *   - 【深度FBO】:只挂一张深度纹理、不挂颜色纹理的帧缓冲。配套两个新调用
+ *     glDrawBuffer(GL_NONE)/glReadBuffer(GL_NONE) 告诉 GL"这个 FBO 不读写颜色"。
+ *   - glFramebufferTexture2D 把纹理挂到 FBO 的【GL_DEPTH_ATTACHMENT】深度附加点。
+ *   - 纹理内部格式用 GL_DEPTH_COMPONENT(每个纹素只存一个深度值)。
+ *   - 【光源空间矩阵 lightSpaceMatrix】= 正交投影 × lookAt(光源→场景中心)。
+ *     用正交(而非透视):平行光没有近大远小,光线方向处处一致。
+ *   - 两趟渲染:① 绑定 depthMapFBO 画深度图;② 解绑回默认 FBO,把深度图贴到
+ *     铺满屏幕的 quad 上可视化(debug_quad_depth.fs 把深度值当灰度显示)。
+ *   - shadow_mapping_depth.fs 是个空 main(){}:深度由【光栅化硬件自动写入】,
+ *     不需要手动输出 gl_FragDepth。
+ */
 int main()
 {
     // glfw: initialize and configure
@@ -119,21 +138,37 @@ int main()
 
     // configure depth map FBO
     // -----------------------
+    // ⭐【深度FBO】专门存深度图的帧缓冲。分辨率独立于窗口,这里 1024×1024 越大阴影越精细。
     const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
     unsigned int depthMapFBO;
     glGenFramebuffers(1, &depthMapFBO);
     // create depth texture
+    // 这张纹理当"深度画布":渲染时光栅化硬件把最近深度写进它。
     unsigned int depthMap;
     glGenTextures(1, &depthMap);
     glBindTexture(GL_TEXTURE_2D, depthMap);
+    // ⭐ 内部格式 GL_DEPTH_COMPONENT:每个纹素只存一个深度浮点(不存颜色 RGB)。
+    //   第3参数(内部格式)和第7参数(数据格式)都用 GL_DEPTH_COMPONENT,第8参数 GL_FLOAT。
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    // NEAREST 采样:深度图不能插值(插值出来的"假深度"会让阴影边缘出错),必须最近邻。
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     // attach depth texture as FBO's depth buffer
+    // ⭐ glFramebufferTexture2D(target, attachment, textarget, texture, level)
+    //   把 depthMap 纹理挂到这个 FBO 的【深度附加点 GL_DEPTH_ATTACHMENT】。
+    //   - target:GL_FRAMEBUFFER(读/写都绑) 或 GL_READ_FRAMEBUFFER / GL_DRAW_FRAMEBUFFER
+    //   - attachment:附加点。深度=GL_DEPTH_ATTACHMENT;颜色=GL_COLOR_ATTACHMENT0..N;模板=GL_STENCIL_ATTACHMENT
+    //   - textarget:纹理类型,2D 纹理用 GL_TEXTURE_2D
+    //   - texture:要挂的纹理对象名
+    //   - level:mipmap 层,0 = 原始图
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+    // ⚠ 关键两行:告诉 GL 这个 FBO 【不写颜色、也不读颜色】,只写深度。
+    //   glDrawBuffer(GL_NONE):把绘制目标颜色缓冲设为"无"。
+    //   glReadBuffer(GL_NONE):把读取源颜色缓冲设为"无"。
+    //   少了这两行,FBO 因缺少颜色附件会被认为不完整(completeness 检查失败)。
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -169,6 +204,10 @@ int main()
 
         // 1. render depth of scene to texture (from light's perspective)
         // --------------------------------------------------------------
+        // ⭐【光源空间矩阵 lightSpaceMatrix】= 投影 × 视图。
+        //   光源当相机:lookAt(站在 lightPos,看向原点,up=+Y)。
+        //   平行光用【正交投影 glm::ortho】(左/右/下/上/近/远):光线平行、无近大远小。
+        //   这个矩阵后面既用来画深度图(vs 里),也会传给主着色器(下一章判断阴影用)。
         glm::mat4 lightProjection, lightView;
         glm::mat4 lightSpaceMatrix;
         float near_plane = 1.0f, far_plane = 7.5f;
@@ -179,6 +218,8 @@ int main()
         simpleDepthShader.use();
         simpleDepthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
 
+        // ⭐ 第一趟:把视口切到深度图尺寸,绑定深度FBO,只清深度缓冲,然后画场景。
+        //   画出来的"颜色"(其实是深度)就自动烤进 depthMap 纹理了。
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
             glClear(GL_DEPTH_BUFFER_BIT);
@@ -188,11 +229,14 @@ int main()
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         // reset viewport
+        // 视口切回窗口尺寸,准备第二趟(把深度图画到屏幕上看)。
         glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // render Depth map to quad for visual debugging
         // ---------------------------------------------
+        // 第二趟:把刚烤好的 depthMap 当纹理,贴到铺满屏幕的 quad 上可视化。
+        // near/far 传给 fs 的 LinearizeDepth(正交投影下其实用不到,见 fs 注释)。
         debugDepthQuad.use();
         debugDepthQuad.setFloat("near_plane", near_plane);
         debugDepthQuad.setFloat("far_plane", far_plane);

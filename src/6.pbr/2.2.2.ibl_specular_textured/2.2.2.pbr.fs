@@ -1,3 +1,14 @@
+// PBR 片段着色器(2.2.2)—— ⭐ 全章终极形态:【纹理化 + 完整 IBL】。
+//
+// 合并:
+//   - 6.1.2 的纹理化材质读取(5 张图:albedo/normal/metallic/roughness/ao)
+//   - 2.2.1 的 IBL 镜面反射 + 漫反射 ambient 段
+// Cook-Torrance 直接光照部分与 2.2.1 完全相同,不再注释。
+//
+// ⭐ 本 demo 新增的两处:
+//   1. getNormalFromMap() —— 用 dFdx/dFdy 在 fragment 里现场推 TBN 基(不需要顶点传 tangent)
+//   2. albedo = pow(texture(...).rgb, vec3(2.2)) —— 把 sRGB 贴图【解码】回线性空间
+//      (PNG 等图片是 sRGB 编码,所有 PBR 计算必须在【线性空间】做)
 #version 330 core
 out vec4 FragColor;
 in vec2 TexCoords;
@@ -24,24 +35,38 @@ uniform vec3 camPos;
 
 const float PI = 3.14159265359;
 // ----------------------------------------------------------------------------
+// ⭐【新增】从法线贴图读出切线空间法线,再现场转世界空间。
+//   不需要顶点预传 tangent——直接用 dFdx/dFdy 求相邻 fragment 的位置/UV 差分,
+//   反推出 TBN 基,然后变换 tangentNormal 到世界空间。
+//
+//   原理:三角面片在屏幕上投影时,相邻像素的位置和 UV 都连续变化;
+//        ∂Position/∂x 和 ∂UV/∂x 的比值给出"沿 U 方向的世界向量" = tangent 方向。
+//   dFdx(p):返回 p 在屏幕 x 方向的相邻 fragment 差分(只在 fragment shader 可用)。
+//   dFdy(p):同上,屏幕 y 方向。
+//
 // Easy trick to get tangent-normals to world-space to keep PBR code simplified.
-// Don't worry if you don't get what's going on; you generally want to do normal 
-// mapping the usual way for performance anyways; I do plan make a note of this 
+// Don't worry if you don't get what's going on; you generally want to do normal
+// mapping the usual way for performance anyways; I do plan make a note of this
 // technique somewhere later in the normal mapping tutorial.
 vec3 getNormalFromMap()
 {
+    // 法线贴图存的是 [0,1] 切线空间法线,解包到 [-1,1]。
     vec3 tangentNormal = texture(normalMap, TexCoords).xyz * 2.0 - 1.0;
 
+    // 屏幕上相邻 fragment 的位置差分(世界空间向量)。
     vec3 Q1  = dFdx(WorldPos);
     vec3 Q2  = dFdy(WorldPos);
+    // 屏幕上相邻 fragment 的 UV 差分。
     vec2 st1 = dFdx(TexCoords);
     vec2 st2 = dFdy(TexCoords);
 
     vec3 N   = normalize(Normal);
+    // ⭐ 由位置差分和 UV 差分反推 tangent(详见 normal mapping 教程的数学推导)。
     vec3 T  = normalize(Q1*st2.t - Q2*st1.t);
     vec3 B  = -normalize(cross(N, T));
     mat3 TBN = mat3(T, B, N);
 
+    // 把切线空间法线转换到世界空间。
     return normalize(TBN * tangentNormal);
 }
 // ----------------------------------------------------------------------------
@@ -93,6 +118,11 @@ vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
 void main()
 {		
     // material properties
+    // ⭐ albedo 来自贴图(本 demo 新增),与 uniform 版的关键区别:
+    //   pow(rgb, 2.2) 把【sRGB 编码】的贴图值解码回【线性空间】。
+    //   PNG/JPG 等图片文件存的是 sRGB(为了人眼感知均匀),但 PBR 所有计算必须在线性空间,
+    //   否则光照颜色会偏暗、混合出错。这就是【gamma correction】的逆过程。
+    //   metallic/roughness/ao 是【数据】通道(不是颜色),不需要 gamma 解码。
     vec3 albedo = pow(texture(albedoMap, TexCoords).rgb, vec3(2.2));
     float metallic = texture(metallicMap, TexCoords).r;
     float roughness = texture(roughnessMap, TexCoords).r;

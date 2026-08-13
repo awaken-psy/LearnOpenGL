@@ -1,3 +1,5 @@
+// 镜面反射 IBL Split-Sum 第一部分(prefilter)—— 【与 2.2.1.prefilter.fs 完全相同】。
+// 详见 2.2.1.prefilter.fs 注释(Hammersley + ImportanceSampleGGX + 自适应 mip + textureLod)。
 #version 330 core
 out vec4 FragColor;
 in vec3 WorldPos;

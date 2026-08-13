@@ -1,3 +1,5 @@
+// PBR 顶点着色器 —— 【与 6.1 / 2.1.1 完全相同】。无新增概念。
+// 标准 MVP 变换 + 法线矩阵变换法线 + 输出 WorldPos/TexCoords/Normal 给 fs。
 #version 330 core
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aNormal;

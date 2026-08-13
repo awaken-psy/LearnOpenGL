@@ -1,3 +1,5 @@
+// ⚠ 本文件与 3.2.1.point_shadows.vs【完全相同】(接口块 + reverse_normals),
+//   原理和每行注释见 3.2.1.point_shadows.vs,这里不重复。
 #version 330 core
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aNormal;

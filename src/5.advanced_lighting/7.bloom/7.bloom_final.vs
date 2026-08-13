@@ -1,3 +1,4 @@
+// 全屏四边形顶点着色器(第 4 章学过,无新内容,同 6.hdr.vs)
 #version 330 core
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec2 aTexCoords;

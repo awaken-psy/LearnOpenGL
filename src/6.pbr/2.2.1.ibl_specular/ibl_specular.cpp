@@ -35,6 +35,27 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+/**
+ * IBL 第三步:【镜面反射 IBL】—— Epic Games 的【Split-Sum 近似】。
+ *
+ * 在 2.1.2(漫反射 IBL)基础上,本 demo 把【环境镜面反射】也预计算好。
+ * 物理上,镜面反射积分是 ∫ L_in * BRDF * cosθ dω,无法解析,直接卷积也贵得离谱。
+ * Split-Sum 近似把它拆成两部分【离线】预计算:
+ *
+ *   1. 【prefilterMap】(立方体贴图 128² × 5 mip):
+ *      预渲染环境贴图,每个 mip 对应一个 roughness(0=光滑,4=粗糙)。
+ *      用 GGX 重要性采样 + Hammersley 低差异序列,自适应选源 mip 消除"亮点斑"。
+ *      运行时按反射向量 R + roughness 用 textureLod 采样。
+ *
+ *   2. 【brdfLUT】(2D 纹理 512²,只有 RG 两通道):
+ *      离线算好 BRDF 的【尺度scale】和【偏置bias】,
+ *      入参 (NdotV, roughness),出参 (scale, bias)。运行时和 F0、prefilteredColor 组合。
+ *
+ * 完整 ambient = (kD * diffuse + specular) * ao,
+ *   其中 specular = prefilteredColor * (F * brdf.x + brdf.y)。
+ *
+ * 本 demo 同时也要新增一个 renderQuad() —— BRDF LUT 是渲染到 2D 纹理(不是 cubemap)。
+ */
 int main()
 {
     // glfw: initialize and configure
@@ -79,7 +100,10 @@ int main()
     glEnable(GL_DEPTH_TEST);
     // set depth function to less than AND equal for skybox depth trick.
     glDepthFunc(GL_LEQUAL);
-    // enable seamless cubemap sampling for lower mip levels in the pre-filter map.
+    // ⭐【新增】启用立方体贴图无缝采样。
+    //   默认情况下,采样 cubemap 在面与面交界处会有可见的"接缝"——每面是独立的图像。
+    //   开启 SEAMLESS 后,GPU 在边界附近会自动跨面滤波,使整个 cubemap 表现为一张连续的图。
+    //   对本 demo 尤为关键:prefilter 在高 mip(模糊)采样时,如果不无缝,接缝会被放大成明显的"十字线"。
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
     // build and compile shaders
@@ -158,6 +182,10 @@ int main()
 
     // pbr: setup cubemap to render to and attach to framebuffer
     // ---------------------------------------------------------
+    // 与 2.1.1/2.1.2 类似,但【新增】两点:
+    //   1. MIN_FILTER 改为 GL_LINEAR_MIPMAP_LINEAR(允许三线性滤波,跨 mip 双线性插值)
+    //   2. 转完 equirect 后调用 glGenerateMipmap(GL_TEXTURE_CUBE_MAP) 生成 mipmap 链
+    // 这些都是为了消除 prefilter 着色器在高 roughness 时出现的"亮点斑点"——见 prefilter.fs 注释。
     unsigned int envCubemap;
     glGenTextures(1, &envCubemap);
     glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
@@ -168,6 +196,8 @@ int main()
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    // ⭐【新增】GL_LINEAR_MIPMAP_LINEAR:缩小时在 mip 之间做三线性插值。
+    //   prefilter.fs 会按 PDF 自适应选源 mip;只有 mip 链 + 跨 mip 插值才能消除亮点斑。
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); // enable pre-filter mipmap sampling (combatting visible dots artifact)
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -204,7 +234,10 @@ int main()
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    // then let OpenGL generate mipmaps from first mip face (combatting visible dots artifact)
+    // ⭐【新增】为 envCubemap 自动生成 mipmap 链。
+    //   glGenerateMipmap(GL_TEXTURE_CUBE_MAP):基于 0 级(原始 512²)逐级向下采样到 1×1。
+    //   prefilter.fs 用 textureLod 按计算出的 mipLevel 采样这些 mip,得到已经模糊的环境图。
+    //   ⚠ 注意:GL_TEXTURE_CUBE_MAP 让 6 个面【一起】生成 mipmap,而不是某一面单独。
     glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
     glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
@@ -249,23 +282,33 @@ int main()
 
     // pbr: create a pre-filter cubemap, and re-scale capture FBO to pre-filter scale.
     // --------------------------------------------------------------------------------
+    // ⭐【新增核心】prefilterMap:存的是【预过滤后的环境贴图】。
+    //   尺寸 128² × 6 面(比 envCubemap 小一半,因为镜面反射细节不需要那么高);
+    //   每个面要分配 5 个 mip(0~4),每个 mip 对应一个 roughness 等级。
     unsigned int prefilterMap;
     glGenTextures(1, &prefilterMap);
     glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
     for (unsigned int i = 0; i < 6; ++i)
     {
+        // 只分配第 0 级(mip 0),其余 mip 由 glGenerateMipmap 自动分配。
         glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 128, 128, 0, GL_RGB, GL_FLOAT, nullptr);
     }
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); // be sure to set minification filter to mip_linear 
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); // be sure to set minification filter to mip_linear
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // generate mipmaps for the cubemap so OpenGL automatically allocates the required memory.
+    // ⭐【关键】生成 mipmap——这一步只是让 OpenGL 分配 5 个 mip 的内存(mip 0~4)。
+    //   各 mip 的实际内容稍后由 prefilter.fs 渲染填充。
     glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
     // pbr: run a quasi monte-carlo simulation on the environment lighting to create a prefilter (cube)map.
     // ----------------------------------------------------------------------------------------------------
+    // ⭐ 对 prefilterMap 的【每个 mip】单独渲染——每个 mip 代表一个 roughness 等级。
+    //   rough_range 公式:roughness = mip / (maxMip - 1)
+    //     mip 0 → roughness 0.0(完美镜面,几乎等于原始 env)
+    //     mip 4 → roughness 1.0(完全粗糙,几乎是 irradiance)
+    //   这样运行时按 roughness*4 选 mip 就能拿到对应模糊程度的预过滤环境色。
     prefilterShader.use();
     prefilterShader.setInt("environmentMap", 0);
     prefilterShader.setMat4("projection", captureProjection);
@@ -276,18 +319,22 @@ int main()
     unsigned int maxMipLevels = 5;
     for (unsigned int mip = 0; mip < maxMipLevels; ++mip)
     {
-        // reisze framebuffer according to mip-level size.
+        // 每个 mip 尺寸减半:mip 0 = 128², mip 1 = 64², ..., mip 4 = 8²。
         unsigned int mipWidth  = static_cast<unsigned int>(128 * std::pow(0.5, mip));
         unsigned int mipHeight = static_cast<unsigned int>(128 * std::pow(0.5, mip));
+        // RBO 也要 resize 以匹配当前 mip 尺寸。
         glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
         glViewport(0, 0, mipWidth, mipHeight);
 
+        // ⭐ 当前 mip 对应的 roughness:mip 0→0.0,mip 4→1.0(线性映射)。
         float roughness = (float)mip / (float)(maxMipLevels - 1);
         prefilterShader.setFloat("roughness", roughness);
         for (unsigned int i = 0; i < 6; ++i)
         {
             prefilterShader.setMat4("view", captureViews[i]);
+            // ⭐ 注意第 5 个参数:level=mip。这是【渲染到 cubemap 某一面的某一 mip】的关键。
+            //   前面 demo 都是 level=0;现在每个 mip 单独画。
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, prefilterMap, mip);
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -298,11 +345,17 @@ int main()
 
     // pbr: generate a 2D LUT from the BRDF equations used.
     // ----------------------------------------------------
+    // ⭐【新增核心】brdfLUTTexture:一个 2D 纹理(不是 cubemap),存【BRDF 积分查找表】。
+    //   - 尺寸 512×512
+    //   - 格式 GL_RG16F:只有 R、G 两通道(分别存 scale 和 bias),不需要 B
+    //   - 坐标含义:TexCoords.x = NdotV(法线·视线),TexCoords.y = roughness
+    //   运行时按 (NdotV, roughness) 采样,得到 .rg 用于缩放和偏置菲涅尔。
     unsigned int brdfLUTTexture;
     glGenTextures(1, &brdfLUTTexture);
 
     // pre-allocate enough memory for the LUT texture.
     glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
+    // ⭐ 注意 format 是 GL_RG(不是 RGB)——只需要 2 个通道。
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, 512, 512, 0, GL_RG, GL_FLOAT, 0);
     // be sure to set wrapping mode to GL_CLAMP_TO_EDGE
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -310,15 +363,19 @@ int main()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+    // 渲染 brdfLUT:不是渲染到 cubemap 6 面,而是渲染一个【全屏 quad】覆盖 2D 纹理。
+    // captureFBO 重置到 512×512,glFramebufferTexture2D 用 GL_TEXTURE_2D(不是 cubemap)目标。
     // then re-configure capture framebuffer object and render screen-space quad with BRDF shader.
     glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
     glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
+    // ⭐ textarget 是 GL_TEXTURE_2D(普通 2D 纹理),不是 cubemap。一次性渲染整个 LUT。
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, brdfLUTTexture, 0);
 
     glViewport(0, 0, 512, 512);
     brdfShader.use();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // renderQuad() 画一个 NDC 空间的 1×1 quad,fragment shader 在每个像素算 BRDF。
     renderQuad();
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -364,6 +421,10 @@ int main()
         pbrShader.setVec3("camPos", camera.Position);
 
         // bind pre-computed IBL data
+        // ⭐ 三张 IBL 贴图都绑上去:
+        //   slot 0 = irradianceMap(漫反射环境光)
+        //   slot 1 = prefilterMap(镜面反射环境光,按 roughness 选 mip)
+        //   slot 2 = brdfLUT(BRDF 积分查找表)
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
         glActiveTexture(GL_TEXTURE1);
@@ -671,6 +732,9 @@ void renderCube()
 
 // renderQuad() renders a 1x1 XY quad in NDC
 // -----------------------------------------
+// 【本 demo 新增】渲染一个全屏 quad(4 个顶点),用于把 brdf.fs 输出到 brdfLUTTexture。
+// 与 renderCube/renderSphere 不同,这个 quad 没有变换矩阵——顶点位置直接当 NDC 坐标用,
+// brdf.vs 把 aPos 直接赋给 gl_Position。
 unsigned int quadVAO = 0;
 unsigned int quadVBO;
 void renderQuad()

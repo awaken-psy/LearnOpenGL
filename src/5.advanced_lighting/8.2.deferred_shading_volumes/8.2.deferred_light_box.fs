@@ -1,3 +1,4 @@
+// Light Box 片段着色器 —— 与 8.1 相同(输出光源颜色,画成可见小光球)
 #version 330 core
 layout (location = 0) out vec4 FragColor;
 

@@ -218,32 +218,77 @@ int main()
 
     // ---- 帧缓冲配置 ----
     // ⭐ FBO 创建三步走：(1) 生成并绑定 FBO (2) 创建颜色附件纹理 (3) 创建深度/模板 RBO
+    //
+    // 【为什么要配这些附件】：FBO 本身只是个空容器，不存任何数据。要把画面"画进去"，
+    //   必须给它挂上两样东西：①颜色往哪写（颜色附件）②深度往哪存（深度附件）。
+    //   前者用纹理（第二趟要采样显示），后者用 RBO（只需内部深度测试、不用 shader 采样）。
     // framebuffer configuration
     // -------------------------
     unsigned int framebuffer;
     glGenFramebuffers(1, &framebuffer);
+
+    // glBindFramebuffer(GLenum target, GLuint framebuffer)：把"渲染输出"指向这个 FBO。
+    //   绑定后，后续所有渲染都会画进这个 FBO 的附件里，而不是直接画到屏幕。
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
     // create a color attachment texture
     // ⭐ 颜色附件：一张与窗口同分辨率的空纹理，场景将渲染到这张纹理上
-    //   最后一个参数传 NULL 表示只分配内存不填充数据
     unsigned int textureColorbuffer;
     glGenTextures(1, &textureColorbuffer);
     glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
+    // ⚠ 这行 glTexImage2D 的第 9 个参数(数据指针)传 NULL：因为这张纹理不是从图片加载，
+    //   而是"留空等场景画进去"。OpenGL 只按前几个参数分配好 GL_RGB / SCR_WIDTH×SCR_HEIGHT 的存储。
+    //   （glTexImage2D 的完整参数签名在第1章 4.1.textures 已标注，这里不重复。）
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // 把一张纹理挂到 FBO 的某个附件槽上。
+    //   target     — GL_FRAMEBUFFER
+    //   attachment — 挂到哪个槽：GL_COLOR_ATTACHMENT0..N（颜色）、GL_DEPTH_ATTACHMENT（深度）、
+    //                GL_STENCIL_ATTACHMENT（模板）、GL_DEPTH_STENCIL_ATTACHMENT（深度+模板合一）
+    //   textarget  — 纹理类型：GL_TEXTURE_2D（普通2D纹理）；若是 cubemap 则写
+    //                GL_TEXTURE_CUBE_MAP_POSITIVE_X+i（第5章点阴影会把深度 cubemap 挂上来）
+    //   texture    — 要挂的纹理 ID
+    //   level      — mipmap 层级，0 = 基础层
+    // 这里把刚建的空纹理挂成【颜色附件 0】，之后场景颜色就会写进这张纹理。
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
+
+
+
+
+
     // create a renderbuffer object for depth and stencil attachment (we won't be sampling these)
-    // ⭐ 深度/模板附件使用 RBO 而非纹理：因为我们需要深度测试但不需要采样深度值，
-    //   RBO 经过优化，比纹理更适合作为只写的深度缓冲
+    // ⭐ 深度/模板附件用 RBO 而非纹理：需要深度测试但不在 shader 里采样深度值——
+    //   RBO 不能被 shader 采样、却能参与 OpenGL 内部深度测试，还省掉了纹理的采样状态开销，更适合这种用途。
     unsigned int rbo;
     glGenRenderbuffers(1, &rbo);
     glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT); // use a single renderbuffer object for both a depth AND stencil buffer.
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); // now actually attach it
-    // now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
+
+    // glRenderbufferStorage(GLenum target, GLenum internalformat, GLsizei width, GLsizei height)：
+    // 为 RBO 分配指定格式、指定尺寸的存储（类似纹理的 glTexImage2D，但 RBO 只能分配空存储、不能传数据进去）。
+    //   target         — GL_RENDERBUFFER
+    //   internalformat — 内部格式。GL_DEPTH24_STENCIL8 = 24位深度 + 8位模板打包存储，
+    //                    所以一个 RBO 同时充当深度和模板缓冲（其他可选 GL_DEPTH_COMPONENT24、GL_RGBA8 等）
+    //   width/height   — 分辨率，⚠ 必须和颜色附件、窗口一致，否则 FBO 不完整
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT);
+
+    // glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer)：
+    // 把一个 RBO 挂到 FBO 的某个附件槽上（和上面的 glFramebufferTexture2D 对应——那里挂纹理，这里挂 RBO）。
+    //   target             — GL_FRAMEBUFFER
+    //   attachment         — 这里 GL_DEPTH_STENCIL_ATTACHMENT，同时作为深度和模板附件
+    //   renderbuffertarget — 必须是 GL_RENDERBUFFER
+    //   renderbuffer       — RBO ID
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); 
+
+    // ⭐ glCheckFramebufferStatus(GLenum target) → GLenum：检查 FBO 是否"完整"(可用)。
+    //   完整的硬性条件：至少有一个附件、各附件分辨率一致、采样数一致、格式合法……
+    //   返回 GL_FRAMEBUFFER_COMPLETE 才能正常渲染；否则返回各种 GL_FRAMEBUFFER_INCOMPLETE_* 错误码。
+    //   这是 FBO 渲染失败、黑屏排错的第一步——不检查就用，出了问题无从查起。
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
+    
+    // 解绑 FBO：传 0 回到默认帧缓冲（屏幕）。配置阶段到此结束；真正渲染时第一趟再 glBindFramebuffer 切回 FBO。
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // draw as wireframe
@@ -269,7 +314,7 @@ int main()
         // ------
         // bind to framebuffer and draw scene as we normally would to color texture 
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-        glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
+        glEnable(GL_DEPTH_TEST); 
 
         // make sure we clear the framebuffer's content
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -303,7 +348,7 @@ int main()
         // now bind back to default framebuffer and draw a quad plane with the attached framebuffer color texture
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         // ⭐ 禁用深度测试：屏幕四边形是 2D 的，不需要深度比较
-        glDisable(GL_DEPTH_TEST); // disable depth test so screen-space quad isn't discarded due to depth test.
+        glDisable(GL_DEPTH_TEST); 
         // clear all relevant buffers
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // set clear color to white (not really necessary actually, since we won't be able to see behind the quad anyways)
         glClear(GL_COLOR_BUFFER_BIT);

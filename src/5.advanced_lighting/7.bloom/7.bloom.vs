@@ -1,3 +1,5 @@
+// 场景顶点着色器 — 和 6.lighting.vs 几乎一样,差异:没有 inverse_normals 开关
+// (Bloom 场景是普通立方体从外部看,法线朝外就对,不需要翻转)。
 #version 330 core
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aNormal;
@@ -15,11 +17,11 @@ uniform mat4 model;
 
 void main()
 {
-    vs_out.FragPos = vec3(model * vec4(aPos, 1.0));   
+    vs_out.FragPos = vec3(model * vec4(aPos, 1.0));
     vs_out.TexCoords = aTexCoords;
-        
+
     mat3 normalMatrix = transpose(inverse(mat3(model)));
     vs_out.Normal = normalize(normalMatrix * aNormal);
-    
+
     gl_Position = projection * view * model * vec4(aPos, 1.0);
 }

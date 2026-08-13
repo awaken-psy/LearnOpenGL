@@ -1,3 +1,4 @@
+// 天空盒顶点着色器 —— 【与 2.1.2.background.vs 相同】(mat4(mat3(view)) + clipPos.xyww)。
 #version 330 core
 layout (location = 0) in vec3 aPos;
 

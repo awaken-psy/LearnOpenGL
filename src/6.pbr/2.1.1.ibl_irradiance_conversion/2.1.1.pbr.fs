@@ -1,3 +1,13 @@
+// PBR 片段着色器 —— ⭐ 本 demo 的 PBR 着色器和 6.1 完全相同,ambient 仍固定 0.03。
+//
+// 这个 demo 只是把【环境贴图】准备好(equirectangular → cubemap 转换),
+// 还没真正用 IBL 算光照。下一个 demo(2.1.2)才会把 ambient 替换成真正的 irradiance。
+//
+// 唯一为下个 demo 铺垫的伏笔:第 65 行的 R = reflect(-V, N)
+// ——预声明反射向量,后面 IBL 镜面反射会按 R 去采样环境贴图。
+//
+// Cook-Torrance 直接光照部分(DistributionGGX / GeometrySmith / fresnelSchlick)
+// 已在 6.1 详述,这里不重复。
 #version 330 core
 out vec4 FragColor;
 in vec2 TexCoords;
@@ -62,7 +72,8 @@ void main()
 {		
     vec3 N = Normal;
     vec3 V = normalize(camPos - WorldPos);
-    vec3 R = reflect(-V, N); 
+    // R = 从眼睛看过去的反射方向(下个 demo 用来采样环境贴图)。本 demo 暂未使用。
+    vec3 R = reflect(-V, N);
 
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
     // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
@@ -107,8 +118,10 @@ void main()
         Lo += (kD * albedo / PI + specular) * radiance * NdotL;  // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again
     }   
     
+    // ⚠ 本 demo 的 ambient 仍是固定 0.03 的常量环境光——下一 demo(2.1.2)才会替换为
+    //   从 irradianceMap 采样的真实 IBL 漫反射环境光。
     vec3 ambient = vec3(0.03) * albedo * ao;
-    
+
     vec3 color = ambient + Lo;
 
     // HDR tonemapping

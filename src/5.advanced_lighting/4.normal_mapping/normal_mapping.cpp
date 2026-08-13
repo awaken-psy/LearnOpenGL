@@ -34,6 +34,25 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+/**
+ * 法线贴图(Normal Mapping)— 用一张【法线纹理】给平面"画"出像素级的凹凸细节
+ *
+ * 顶点法线只能描述大方向,一个平面就一条法线,光照必然显得平。法线贴图则每个纹素存一条
+ * 法线方向,能描述砖缝、鳞片这种【像素级】的凹凸,几何完全不动,光照先看起来有细节了。
+ *
+ * ⭐ 全部光照都在【切线空间 tangent space】里做,这是本节核心:
+ *   - 切线空间 = 以片段法线为 +Z、贴图 U/V 为 X/Y 的局部坐标系。法线贴图里的法线就是
+ *     按这个空间存的(所以整张图偏蓝紫:z 分量接近 1)。
+ *   - vs 里建一个 TBN 矩阵,把 lightPos / viewPos / fragPos 一次性转到切线空间;
+ *     fs 拿到的法线和这些坐标都在同一空间,点乘才有意义。
+ *
+ * 新增(相对前面章节):
+ *   - 顶点属性多了【tangent 和 bitangent】两条切线,renderQuad() 里手工算出来
+ *   - 那个 f = 1/(dUV1.x*dUV2.y - dUV2.x*dUV1.y) 是由"两条边 + 两组 UV 差"反推切线
+ *   - 顶点 stride 变 14 个 float:pos3 + normal3 + uv2 + tangent3 + bitangent3
+ *   - 多绑一张法线贴图到 GL_TEXTURE1
+ */
+
 int main()
 {
     // glfw: initialize and configure
@@ -83,6 +102,8 @@ int main()
     // load textures
     // -------------
     unsigned int diffuseMap = loadTexture(FileSystem::getPath("resources/textures/brickwall.jpg").c_str());
+    // 【法线贴图】:存的不是颜色,而是每个纹素的法线方向(RGB 三通道对应切线空间 xyz)。
+    // 因为要塞进 [0,1] 的无符号纹理,fs 里还得 *2-1 解码回 [-1,1]。
     unsigned int normalMap  = loadTexture(FileSystem::getPath("resources/textures/brickwall_normal.jpg").c_str());
 
     // shader configuration
@@ -128,6 +149,7 @@ int main()
         shader.setVec3("lightPos", lightPos);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, diffuseMap);
+        // 法线贴图绑到 1 号槽,fs 里 sampler2D normalMap 对应读这个槽。
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, normalMap);
         renderQuad();
@@ -170,6 +192,8 @@ void renderQuad()
         // normal vector
         glm::vec3 nm(0.0f, 0.0f, 1.0f);
 
+        // 【切线/副切线 tangent/bitangent】手工推导:三角形两条边 = 切线方向 × UV 差,
+        // 解这个二元方程就得到沿 U 方向的 tangent 和沿 V 方向的 bitangent。
         // calculate tangent/bitangent vectors of both triangles
         glm::vec3 tangent1, bitangent1;
         glm::vec3 tangent2, bitangent2;
@@ -180,6 +204,8 @@ void renderQuad()
         glm::vec2 deltaUV1 = uv2 - uv1;
         glm::vec2 deltaUV2 = uv3 - uv1;
 
+        // ⭐ f = 1/(dUV1.x*dUV2.y - dUV2.x*dUV1.y):方程组行列式的倒数,
+        //   后面所有 tangent/bitangent 分量都要乘它。
         float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
 
         tangent1.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
@@ -225,6 +251,8 @@ void renderQuad()
         glBindVertexArray(quadVAO);
         glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+        // 顶点 stride = 14 个 float(pos3+normal3+uv2+tangent3+bitangent3),
+        // 下面 5 个属性都按这个 stride 读,只是起始偏移不同。
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(1);

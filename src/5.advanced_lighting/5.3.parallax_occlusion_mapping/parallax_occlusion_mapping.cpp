@@ -35,6 +35,16 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+/**
+ * 视差遮蔽贴图(Parallax Occlusion Mapping, POM)— 在 5.2 找到交点后再【线性插值】消锯齿
+ *
+ * cpp 部分与 5.1/5.2 完全相同(3 张图、Q/E 调 heightScale、renderQuad 算切线)。
+ * 区别依旧是 fs:POM 在陡峭视差找到"穿透层"后,回头取上一层,根据两层深度差做一次
+ * 线性插值,把 5.2 那个离散的阶梯变成平滑的 UV——锯齿基本消失,几乎以假乱真。
+ *
+ * 插值逻辑见 5.3.parallax_mapping.fs 注释。
+ */
+
 int main()
 {
     // glfw: initialize and configure

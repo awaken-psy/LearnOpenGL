@@ -1,3 +1,4 @@
+// 阴影映射(2/3)— 调试深度可视化。内容与 3.1.1 完全相同,详见 3.1.1.debug_quad_depth.fs。
 #version 330 core
 out vec4 FragColor;
 

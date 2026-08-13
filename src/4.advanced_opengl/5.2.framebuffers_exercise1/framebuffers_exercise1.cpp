@@ -233,9 +233,8 @@ int main()
     unsigned int rbo;
     glGenRenderbuffers(1, &rbo);
     glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT); // use a single renderbuffer object for both a depth AND stencil buffer.
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); // now actually attach it
-                                                                                                  // now that we actually created the framebuffer and added all attachments we want to check if it is actually complete now
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);    
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -259,11 +258,6 @@ int main()
 
 
         // ---- 第一趟：镜像渲染 — 将摄像机反转 180° 后渲染场景到 FBO ----
-        // first render pass: mirror texture.
-        // bind to framebuffer and draw to color texture as we normally 
-        // would, but with the view camera reversed.
-        // bind to framebuffer and draw scene as we normally would to color texture 
-        // ------------------------------------------------------------------------
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
         glEnable(GL_DEPTH_TEST); // enable depth testing (is disabled for rendering screen-space quad)
 
@@ -276,9 +270,9 @@ int main()
         // ⭐ 镜像技巧：临时将摄像机 Yaw +180°，让视角"向后看"
         //   渲染到 FBO 后立即恢复，这样 FBO 纹理中存储的就是"镜子中看到的画面"
         camera.Yaw   += 180.0f; // rotate the camera's yaw 180 degrees around
-        camera.ProcessMouseMovement(0, 0, false); // call this to make sure it updates its camera vectors, note that we disable pitch constrains for this specific case (otherwise we can't reverse camera's pitch values)
+        camera.ProcessMouseMovement(0, 0, false);
         glm::mat4 view = camera.GetViewMatrix();
-        camera.Yaw   -= 180.0f; // reset it back to its original orientation
+        camera.Yaw   -= 180.0f; 
         camera.ProcessMouseMovement(0, 0, true); 
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         shader.setMat4("view", view);
@@ -302,8 +296,6 @@ int main()
         glBindVertexArray(0);
 
         // ---- 第二趟：正常渲染 — 恢复原始视角，渲染场景到默认帧缓冲 ----
-        // second render pass: draw as normal
-        // ----------------------------------
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -340,7 +332,7 @@ int main()
         screenShader.use();
         glBindVertexArray(quadVAO);
         // ⭐ 将第一趟渲染的镜像 FBO 纹理作为镜子的"画面"
-        glBindTexture(GL_TEXTURE_2D, textureColorbuffer);	// use the color attachment texture as the texture of the quad plane
+        glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
 

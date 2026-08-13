@@ -34,6 +34,19 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+/**
+ * PBR 直接光照 — 用【Cook-Torrance BRDF】替代 Blinn-Phong
+ *
+ * 场景:7×7 球矩阵 + 4 盏点光源。
+ *   - 每行 metallic 0→1(从非金属到金属),每列 roughness 0.05→1.0(从光滑到粗糙),
+ *     一眼能看出两个材质参数怎么影响 PBR 高光。
+ *   - 光源用【物理辐射度】vec3(300)(不是颜色 0~1),配合 fs 里的平方反比衰减 1/d²。
+ *     值很大 → fs 里必须 Reinhard tonemap 压回 0~1。
+ *   - 光源本身也用同一个 PBR shader 画个球(视觉上偏亮,只为标出位置)。
+ *
+ * 新概念(相对第 5 章):PBR 材质参数 metallic/roughness、物理光强、renderSphere()
+ * 的 UV 球生成。其余(GLFW/相机/Shader/纹理/loadTexture)前面已学,不再赘述。
+ */
 int main()
 {
     // glfw: initialize and configure
@@ -99,9 +112,11 @@ int main()
         glm::vec3(300.0f, 300.0f, 300.0f),
         glm::vec3(300.0f, 300.0f, 300.0f)
     };
-    int nrRows    = 7;
-    int nrColumns = 7;
-    float spacing = 2.5;
+    // ⚠ lightColors 的 300 不是"颜色",是【物理辐射度】。值远超 1,因为 fs 里要乘平方反比
+    //   衰减 1/d²,光在远处会变得很弱;近处很亮 → fs 必须用 Reinhard tonemap 才不会爆白。
+    int nrRows    = 7;     // 球矩阵行数(对应 metallic 渐变)
+    int nrColumns = 7;     // 球矩阵列数(对应 roughness 渐变)
+    float spacing = 2.5;   // 球之间的间距
 
     // initialize static shader uniforms before rendering
     // --------------------------------------------------
@@ -133,16 +148,18 @@ int main()
         shader.setMat4("view", view);
         shader.setVec3("camPos", camera.Position);
 
+        // ⭐ 7×7 球矩阵:行→metallic 0→1,列→roughness 0.05→1.0,排成网格直观对比材质效果。
         // render rows*column number of spheres with varying metallic/roughness values scaled by rows and columns respectively
         glm::mat4 model = glm::mat4(1.0f);
-        for (int row = 0; row < nrRows; ++row) 
+        for (int row = 0; row < nrRows; ++row)
         {
-            shader.setFloat("metallic", (float)row / (float)nrRows);
-            for (int col = 0; col < nrColumns; ++col) 
+            shader.setFloat("metallic", (float)row / (float)nrRows);   // 顶行非金属,底行纯金属
+            for (int col = 0; col < nrColumns; ++col)
             {
+                // ⚠ roughness 夹到 0.05 起步:完全光滑(0.0)在直接光照下高光会退化成一个亮点,不好看。
                 // we clamp the roughness to 0.05 - 1.0 as perfectly smooth surfaces (roughness of 0.0) tend to look a bit off
                 // on direct lighting.
-                shader.setFloat("roughness", glm::clamp((float)col / (float)nrColumns, 0.05f, 1.0f));
+                shader.setFloat("roughness", glm::clamp((float)col / (float)nrColumns, 0.05f, 1.0f));  // 左列光滑,右列粗糙
                 
                 model = glm::mat4(1.0f);
                 model = glm::translate(model, glm::vec3(
@@ -243,6 +260,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
     camera.ProcessMouseScroll(static_cast<float>(yoffset));
 }
 
+// 程序化生成一个【UV 球】(参数方程球),首次调用时构建 VAO/VBO/EBO,之后只重绘。
 // renders (and builds at first invocation) a sphere
 // -------------------------------------------------
 unsigned int sphereVAO = 0;
@@ -262,9 +280,12 @@ void renderSphere()
         std::vector<glm::vec3> normals;
         std::vector<unsigned int> indices;
 
-        const unsigned int X_SEGMENTS = 64;
-        const unsigned int Y_SEGMENTS = 64;
+        const unsigned int X_SEGMENTS = 64;   // 经线(经度)分段数
+        const unsigned int Y_SEGMENTS = 64;   // 纬线(纬度)分段数
         const float PI = 3.14159265359f;
+        // ---- 用球面参数方程生成顶点 ----
+        // xSegment 在 [0,1] 映射到经度 [0, 2π);ySegment 映射到纬度 [0, π](从北极到南极)。
+        // 球面坐标 → xyz:标准球参数方程。单位球半径=1,所以法线就等于位置(归一化后)。
         for (unsigned int x = 0; x <= X_SEGMENTS; ++x)
         {
             for (unsigned int y = 0; y <= Y_SEGMENTS; ++y)
@@ -277,10 +298,13 @@ void renderSphere()
 
                 positions.push_back(glm::vec3(xPos, yPos, zPos));
                 uv.push_back(glm::vec2(xSegment, ySegment));
-                normals.push_back(glm::vec3(xPos, yPos, zPos));
+                normals.push_back(glm::vec3(xPos, yPos, zPos));   // 单位球:法线 = 位置
             }
         }
 
+        // ---- 用【triangle strip】连成面:每行一条带,相邻两行顶点交替配对 ----
+        // ⭐ 关键 trick:奇偶行的遍历方向【交替反转】(even 行从左到右,odd 行从右到左)。
+        //   这样所有三角形的绕序(winding)一致、朝外,否则背面剔除会让半个球消失。
         bool oddRow = false;
         for (unsigned int y = 0; y < Y_SEGMENTS; ++y)
         {
@@ -337,7 +361,7 @@ void renderSphere()
     }
 
     glBindVertexArray(sphereVAO);
-    glDrawElements(GL_TRIANGLE_STRIP, indexCount, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLE_STRIP, indexCount, GL_UNSIGNED_INT, 0);  // 用【三角形带】绘制:index 里每 2 个顶点配上一组凑成新三角形
 }
 
 // utility function for loading a 2D texture from file

@@ -1,3 +1,5 @@
+// ⚠ 本文件与 3.2.1.point_shadows_depth.gs【完全相同】(GS 复制三角形到 cubemap 6 面),
+//   原理和每行注释见 3.2.1.point_shadows_depth.gs,这里不重复。
 #version 330 core
 layout (triangles) in;
 layout (triangle_strip, max_vertices=18) out;
