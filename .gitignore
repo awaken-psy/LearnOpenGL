@@ -3,4 +3,5 @@ bin/
 build/
 out/
 .codely-cli/
+.codely-memory/
 CODELY.md
