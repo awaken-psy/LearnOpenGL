@@ -19,6 +19,16 @@
  * - 新增了模板测试相关配置
  * - 使用两个 shader：一个正常渲染，一个输出纯色用于描边
  * - 地板不写入模板缓冲（glStencilMask(0x00)），只有箱子参与轮廓计算
+ * 
+ *   简单说：
+
+   - `glStencilFunc` 的 mask = 读掩码，决定比较时看哪些位
+   - `glStencilMask` 的 mask = 写掩码，决定更新时能改哪些位
+
+  在本 demo 中：
+   - 地板：glStencilMask(0x00) → 禁止写模板 → 地板不影响模板缓冲
+   - 箱子：glStencilMask(0xFF) → 允许写模板 → glStencilOp 的 REPLACE 生效，模板值变成 1
+   - 描边：glStencilMask(0x00) → 禁止写模板 → 描边渲染不破坏已有模板值
  */
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -96,16 +106,55 @@ int main()
     // ---- 深度测试 + 模板测试配置 ----
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
+
     glEnable(GL_STENCIL_TEST);
-    // ⭐ glStencilFunc：设置模板测试的比较函数
-    //   GL_NOTEQUAL：当模板缓冲值 != 参考值(1) 时通过测试
-    //   这个配置用于第二遍渲染——只在模板值不等于 1 的地方绘制（即边缘区域）
-    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-    // ⭐ glStencilOp：设置模板测试各情况下的操作
-    //   参数顺序：(模板测试失败, 深度测试失败但模板通过, 两者都通过)
-    //   GL_KEEP, GL_KEEP, GL_REPLACE = 前两种情况保持不变，
-    //   两者都通过时用参考值(1)替换模板缓冲值
+    // ⭐ glStencilOp — 定义模板缓冲在三种情况下的更新方式
+    //
+    //   每个片段渲染时会经历两道测试：先模板测试，后深度测试。
+    //   三个参数对应三种结果：
+    //
+    //   参数1: sfail   — 模板测试失败时，怎么处理模板值
+    //   参数2: dpfail  — 模板测试通过、但深度测试失败时，怎么处理模板值
+    //   参数3: dppass  — 模板测试和深度测试都通过时，怎么处理模板值
+    //
+    //   GL_KEEP    = 保持模板值不变（不写入）
+    //   GL_REPLACE = 用 glStencilFunc 的参考值替换模板值
+    //
+    //   这里设为 (GL_KEEP, GL_KEEP, GL_REPLACE) 的含义：
+    //     - 模板测试失败 → 不动模板值
+    //     - 模板通过了但被深度挡住 → 不动模板值
+    //     - 模板和深度都通过 → 把模板值改成参考值(后面 glStencilFunc 设的 1)
+    //
+    //   ⭐ 这行是全局配置，三步渲染都受影响，但配合每步不同的 glStencilFunc 和 glStencilMask 实现不同效果。
+    //     - 第零步(地板): glStencilMask(0x00) 禁止写模板 → 模板值保持 0
+    //     - 第一步(箱子): glStencilFunc(GL_ALWAYS, 1, 0xFF) + glStencilMask(0xFF)
+    //                     → GL_ALWAYS 永远通过 → dppass 生效 → 模板值变成 1
+    //     - 第二步(描边): glStencilFunc(GL_NOTEQUAL, 1, 0xFF) + glStencilMask(0x00)
+    //                     → 模板值=1 的像素(箱子本体)测试失败 → 不画
+    //                     → 模板值=0 的像素(箱子边缘)测试通过 → 画出来 = 描边
     glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
+    // ⭐ glStencilFunc — 定义模板测试的比较规则
+    //
+    //   每个片段渲染前，GPU 会执行比较：
+    //     (模板缓冲中的当前值 & 掩码)  比较  (参考值 & 掩码)
+    //
+    //   参数1: func     — 比较函数
+    //   参数2: ref      — 参考值（整数）
+    //   参数3: mask     — 掩码（按位与，0xFF = 全部位参与比较，0x00 = 永远相等）
+    //
+    //   这里设为 (GL_NOTEQUAL, 1, 0xFF) 的含义：
+    //     比较规则 = 模板值 != 1
+    //     - 模板值 = 1（箱子本体的像素）→ 测试失败 → 片段被丢弃，不绘制
+    //     - 模板值 = 0（箱子边缘/背景）  → 测试通过 → 片段被绘制
+    //
+    //   ⭐ 配合第二步渲染放大的箱子：放大后超出原箱子的部分落在模板值=0的区域，
+    //     通过测试被画出来；原箱子覆盖的区域模板值=1，测试失败不画。
+    //     最终只画出"多出来的边缘" = 描边效果。
+    //
+    //   注意：这一行虽然在循环外设了一次，但第一步渲染前会改成 GL_ALWAYS，
+    //         第二步渲染前再改回 GL_NOTEQUAL。这里预设 NOTEQUAL 是初始状态。
+    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 
     // build and compile shaders
     // -------------------------
