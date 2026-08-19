@@ -44,8 +44,6 @@ void main()
         vec3 lightDir = normalize(lights[i].Position - fs_in.FragPos);
         float diff = max(dot(lightDir, normal), 0.0);
         vec3 result = lights[i].Color * diff * color;
-        // attenuation (use quadratic as we have gamma correction)
-        // 物理平方衰减 1/d²(同 6.hdr,配合 gamma 校正)
         float distance = length(fs_in.FragPos - lights[i].Position);
         result *= 1.0 / (distance * distance);
         lighting += result;

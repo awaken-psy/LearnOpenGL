@@ -1,5 +1,4 @@
-// 场景顶点着色器 — 和 6.lighting.vs 几乎一样,差异:没有 inverse_normals 开关
-// (Bloom 场景是普通立方体从外部看,法线朝外就对,不需要翻转)。
+// 场景顶点着色器
 #version 330 core
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aNormal;

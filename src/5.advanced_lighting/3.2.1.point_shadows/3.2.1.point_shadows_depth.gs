@@ -27,7 +27,7 @@ void main()
         // ⭐ gl_Layer:GS 内置变量,指定【当前 EmitVertex 输出的图元写到 cubemap 的哪一面】。
         //   必须在每个面发顶点【之前】设置,且对 cubemap FBO 才有效。
         //   这就是"一次 draw 写 6 面"的关键 —— 通过切换 gl_Layer 把不同三角形分发到不同面。
-        gl_Layer = face; // built-in variable that specifies to which face we render.
+        gl_Layer = face; 
         for(int i = 0; i < 3; ++i) // for each triangle's vertices
         {
             // gl_in[i].gl_Position 是 vs 输出,这里就是 model × aPos = 【世界坐标】。

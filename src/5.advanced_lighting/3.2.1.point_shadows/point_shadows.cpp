@@ -137,10 +137,7 @@ int main()
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    // ⚠ cubemap 比普通 2D 贴图多一个【R 方向】(第三个纹理坐标轴),也要设 wrap,
-    //   否则在面与面交界处采样会越界产生伪影。
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-    // attach depth texture as FBO's depth buffer
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
     // ⭐ glFramebufferTexture(【不是】glFramebufferTexture2D!):把【整个 cubemap】作为整体
     //   附加到 FBO 的深度附件。具体写入哪个面由 GS 里的 gl_Layer 决定。
@@ -271,10 +268,10 @@ void renderScene(const Shader &shader)
     //   ② 反转法线(reverse_normals=1):光照公式依赖法线方向判断"这面是否朝光"。
     //      内壁的真实朝向是朝内,但顶点数据里的法线是朝外的,直接用会被算成背光面(全黑)。
     //      把法线取反,让 vs 输出的法线指向房间内部,光照就正确了。
-    glDisable(GL_CULL_FACE); // note that we disable culling here since we render 'inside' the cube instead of the usual 'outside' which throws off the normal culling methods.
-    shader.setInt("reverse_normals", 1); // A small little hack to invert normals when drawing cube from the inside so lighting still works.
+    glDisable(GL_CULL_FACE);
+    shader.setInt("reverse_normals", 1); 
     renderCube();
-    shader.setInt("reverse_normals", 0); // and of course disable it
+    shader.setInt("reverse_normals", 0); 
     glEnable(GL_CULL_FACE);
     // cubes
     model = glm::mat4(1.0f);

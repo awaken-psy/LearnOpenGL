@@ -70,7 +70,8 @@ void main()
         
         // range check & accumulate
         // ⭐ rangeCheck:防止远处的几何被误判成遮挡。
-        //   smoothstep(0, 1, radius / |fragPos.z - sampleDepth|):
+        //    smoothstep(0, 1, radius / |fragPos.z - sampleDepth|):
+        //   当 x 在 edge0 和 edge1 之间时，返回一个 0 到 1 的平滑过渡值
         //   当采样点深度和 fragment 深度差很大(几何离得远)时,radius/差值→0,rangeCheck→0,
         //   这个采样不计入遮蔽。差值小时 rangeCheck→1,正常计入。
         float rangeCheck = smoothstep(0.0, 1.0, radius / abs(fragPos.z - sampleDepth));

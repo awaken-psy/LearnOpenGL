@@ -35,7 +35,6 @@ uniform bool shadows;
 //   这 20 个方向来自单位立方体的:8 个顶点(全 ±1) + 12 条棱的中点(两个 ±1,一个 0),
 //   在球面上分布相对均匀,用作"采样圆盘"上的离散采样点。
 //   ⚠ 这里存的只是【方向】(未归一化),实际偏移大小 = 方向 × diskRadius。
-// array of offset direction for sampling
 vec3 gridSamplingDisk[20] = vec3[]
 (
    vec3(1, 1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1, 1,  1),
@@ -48,39 +47,8 @@ vec3 gridSamplingDisk[20] = vec3[]
 float ShadowCalculation(vec3 fragPos)
 {
     // 与 3.2.1 相同:采样方向 = 片段 - 光源。
-    // get vector between fragment position and light position
     vec3 fragToLight = fragPos - lightPos;
-
-    // 以下被注释掉的代码是教程演示过的两种写法(单点采样 + 立方体均匀网格 PCF),
-    // 教程最终选用下面的 gridSamplingDisk[20] 方案 —— 球面分布更均匀、采样数更少。
-    // use the fragment to light vector to sample from the depth map
-    // float closestDepth = texture(depthMap, fragToLight).r;
-    // it is currently in linear range between [0,1], let's re-transform it back to original depth value
-    // closestDepth *= far_plane;
-    // now get current linear depth as the length between the fragment and light position
     float currentDepth = length(fragToLight);
-    // test for shadows
-    // float bias = 0.05; // we use a much larger bias since depth is now in [near_plane, far_plane] range
-    // float shadow = currentDepth -  bias > closestDepth ? 1.0 : 0.0;
-    // PCF
-    // float shadow = 0.0;
-    // float bias = 0.05;
-    // float samples = 4.0;
-    // float offset = 0.1;
-    // for(float x = -offset; x < offset; x += offset / (samples * 0.5))
-    // {
-        // for(float y = -offset; y < offset; y += offset / (samples * 0.5))
-        // {
-            // for(float z = -offset; z < offset; z += offset / (samples * 0.5))
-            // {
-                // float closestDepth = texture(depthMap, fragToLight + vec3(x, y, z)).r; // use lightdir to lookup cubemap
-                // closestDepth *= far_plane;   // Undo mapping [0;1]
-                // if(currentDepth - bias > closestDepth)
-                    // shadow += 1.0;
-            // }
-        // }
-    // }
-    // shadow /= (samples * samples * samples);
 
     // ⭐ 最终采用的【球面 PCF】方案
     float shadow = 0.0;

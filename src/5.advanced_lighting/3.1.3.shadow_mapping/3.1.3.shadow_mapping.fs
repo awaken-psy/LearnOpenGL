@@ -23,17 +23,12 @@ uniform vec3 viewPos;
 
 float ShadowCalculation(vec4 fragPosLightSpace)
 {
-    // perform perspective divide
     // 第1步:透视除法(同 3.1.2)。正交投影 w=1 无影响,透视投影必做。
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-    // transform to [0,1] range
     // 第2步:NDC[-1,1] → 纹理坐标[0,1]。
     projCoords = projCoords * 0.5 + 0.5;
-    // get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
     float closestDepth = texture(shadowMap, projCoords.xy).r;
-    // get depth of current fragment from light's perspective
     float currentDepth = projCoords.z;
-    // calculate bias (based on depth map resolution and slope)
     // ⭐【修复①:斜率自适应 bias】
     //   法线越偏离光源(掠射),shadow acne 越严重,bias 要越大;
     //   法线正对光源时 dot≈1,bias≈0.005(下限)。
@@ -42,11 +37,11 @@ float ShadowCalculation(vec4 fragPosLightSpace)
     vec3 normal = normalize(fs_in.Normal);
     vec3 lightDir = normalize(lightPos - fs_in.FragPos);
     float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
-    // check whether current frag pos is in shadow
-    // float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
+
     // ⭐【修复②:PCF(Percentage-Closer Filtering)】——3×3 九次采样取平均,软化硬边。
     //   textureSize(shadowMap, 0) 返回该纹理(0 级 mipmap)的ivec2宽高;
     //   1.0 / textureSize = 每个纹素在 UV 空间的大小 texelSize,用来做邻域偏移。
+    //  如果深度贴图是 1024×1024，返回 vec2(1024.0, 1024.0)
     // PCF
     float shadow = 0.0;
     vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
